@@ -1,0 +1,76 @@
+{
+  "name": "Topic",
+  "table": "topics",
+  "uniqueId": "id",
+  "attributes": [
+    {
+      "field": "id",
+      "type": "bigint"
+    },
+    {
+      "field": "subject_id",
+      "type": "relation",
+      "target": "subjects:id",
+      "collection": "subject",
+      "displayName": "Subject",
+      "relation": {
+        "type": "oneToMany",
+        "reference": "forward",
+        "column": "name"
+      }
+    },
+    {
+      "field": "title",
+      "type": "string"
+    },
+    {
+      "field": "details",
+      "type": "text"
+    },
+    {
+      "field": "tag",
+      "type": "enum",
+      "displayName": "Jamb / Waec",
+      "values": {
+        "Jamb": "J",
+        "Waec": "W",
+        "Jamb & Waec": "JW"
+      }
+    },
+    {
+      "field": "objective",
+      "type": "join-relation",
+      "relation": "hasMany",
+      "tableName": "objectives",
+      "collection": "objective",
+      "joinTableName": "topic_objectives",
+      "joinForeignKey": "topic_id",
+      "joinReferenceKey": "objective_id",
+      "displayName": "Objectives"
+    },
+    {
+      "field": "Podcast",
+      "type": "relation",
+      "target": "podcasts:topic_id",
+      "collection": "podcast",
+      "displayName": "Podcasts",
+      "relation": {
+        "type": "oneToMany",
+        "reference": "backward",
+        "column": "id"
+      }
+    },
+    {
+      "field": "__edit",
+      "type": "action",
+      "action": "edit",
+      "displayName": "Edit"
+    },
+    {
+      "field": "__delete",
+      "type": "action",
+      "action": "delete",
+      "displayName": "Delete"
+    }
+  ]
+}

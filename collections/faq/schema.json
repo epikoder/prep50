@@ -1,0 +1,36 @@
+{
+  "name": "Faq",
+  "table": "faqs",
+  "uniqueId": "id",
+  "attributes": [
+    {
+      "field": "id",
+      "type": "uuid"
+    },
+    {
+      "field": "title",
+      "type": "string"
+    },
+    {
+      "field": "slug",
+      "type": "string",
+      "hidden": true
+    },
+    {
+      "field": "content",
+      "type": "text"
+    },
+    {
+      "field": "__edit",
+      "type": "action",
+      "action": "edit",
+      "displayName": "Edit"
+    },
+    {
+      "field": "__delete",
+      "type": "action",
+      "action": "delete",
+      "displayName": "Delete"
+    }
+  ]
+}

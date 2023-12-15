@@ -1,0 +1,18 @@
+{
+  "Subject": {
+    "type": "relation",
+    "collection": "subject",
+    "field": "subject_id",
+    "node": 0,
+    "column": "name"
+  },
+  "Topic": {
+    "type": "join-relation",
+    "collection": "topic",
+    "parent": "Subject",
+    "pivot": {},
+    "field": "topic",
+    "node": 1,
+    "column": "title"
+  }
+}

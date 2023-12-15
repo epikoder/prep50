@@ -1,0 +1,9 @@
+{
+  "Subject": {
+    "type": "relation",
+    "collection": "subject",
+    "field": "subject_id",
+    "node": 0,
+    "column": "name"
+  }
+}

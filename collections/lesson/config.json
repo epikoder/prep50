@@ -1,0 +1,26 @@
+{
+  "Subject": {
+    "type": "relation",
+    "collection": "subject",
+    "field": "subject_id",
+    "node": 0,
+    "column": "name"
+  },
+  "Topic": {
+    "type": "join-relation",
+    "collection": "topic",
+    "parent": "Subject",
+    "field": "topic",
+    "node": 1,
+    "column": "title"
+  },
+  "Objective": {
+    "type": "join-relation",
+    "collection": "objective",
+    "parent": "Topic",
+    "pivot": {},
+    "field": "objective",
+    "node": 2,
+    "column": "title"
+  }
+}

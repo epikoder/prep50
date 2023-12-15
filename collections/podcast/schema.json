@@ -1,0 +1,56 @@
+{
+  "name": "Podcast",
+  "table": "podcasts",
+  "uniqueId": "id",
+  "attributes": [
+    {
+      "field": "id",
+      "type": "uuid"
+    },
+    {
+      "field": "subject_id",
+      "type": "relation",
+      "target": "subjects:id",
+      "collection": "subject",
+      "displayName": "Subject",
+      "relation": {
+        "type": "oneToMany",
+        "reference": "forward",
+        "column": "name"
+      }
+    },
+    {
+      "field": "topic_id",
+      "type": "relation",
+      "target": "topics:id",
+      "collection": "topic",
+      "displayName": "Topic",
+      "relation": {
+        "type": "oneToMany",
+        "reference": "forward",
+        "column": "title"
+      }
+    },
+    {
+      "field": "title",
+      "type": "string"
+    },
+    {
+      "field": "url",
+      "type": "audio",
+      "displayName": "File"
+    },
+    {
+      "field": "__edit",
+      "type": "action",
+      "action": "edit",
+      "displayName": "Edit"
+    },
+    {
+      "field": "__delete",
+      "type": "action",
+      "action": "delete",
+      "displayName": "Delete"
+    }
+  ]
+}

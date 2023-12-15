@@ -1,0 +1,89 @@
+{
+  "name": "Lesson",
+  "table": "lessons",
+  "uniqueId": "id",
+  "attributes": [
+    {
+      "field": "id",
+      "type": "bigint"
+    },
+    {
+      "field": "subject_id",
+      "type": "relation",
+      "target": "subjects:id",
+      "collection": "subject",
+      "displayName": "Subject",
+      "relation": {
+        "type": "oneToMany",
+        "reference": "forward",
+        "column": "name"
+      }
+    },
+    {
+      "field": "objective",
+      "type": "join-relation",
+      "collection": "objective",
+      "relation": "belongsTo",
+      "tableName": "objectives",
+      "joinTableName": "objective_lessons",
+      "joinForeignKey": "lesson_id",
+      "joinReferenceKey": "objective_id",
+      "displayName": "Objective",
+      "column": "title",
+      "pivot": {
+        "column": "title",
+        "table": "topics",
+        "joinKey": "topic_id",
+        "joinTable": "topic_objectives",
+        "referenceKey": "id",
+        "joinReferenceKey": "objective_id",
+        "displayName": "Topic"
+      }
+    },
+    {
+      "field": "title",
+      "type": "string"
+    },
+    {
+      "field": "content",
+      "type": "text"
+    },
+    {
+      "field": "docs_url",
+      "type": "image",
+      "displayName": "Document"
+    },
+    {
+      "field": "slide_url",
+      "type": "image",
+      "displayName": "Slide"
+    },
+    {
+      "field": "video_url",
+      "type": "video",
+      "displayName": "Video"
+    },
+    {
+      "field": "tag",
+      "type": "enum",
+      "displayName": "Jamb / Waec",
+      "values": {
+        "Jamb": "J",
+        "Waec": "W",
+        "Jamb & Waec": "JW"
+      }
+    },
+    {
+      "field": "__edit",
+      "type": "action",
+      "action": "edit",
+      "displayName": "Edit"
+    },
+    {
+      "field": "__delete",
+      "type": "action",
+      "action": "delete",
+      "displayName": "Delete"
+    }
+  ]
+}

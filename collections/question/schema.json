@@ -1,0 +1,137 @@
+{
+  "name": "Question",
+  "table": "questions",
+  "uniqueId": "id",
+  "attributes": [
+    {
+      "field": "id",
+      "type": "bigint"
+    },
+    {
+      "field": "subject_id",
+      "type": "relation",
+      "target": "subjects:id",
+      "collection": "subject",
+      "displayName": "Subject",
+      "relation": {
+        "type": "oneToMany",
+        "reference": "forward",
+        "column": "name"
+      }
+    },
+    {
+      "field": "objective",
+      "type": "join-relation",
+      "collection": "objective",
+      "relation": "belongsTo",
+      "tableName": "objectives",
+      "joinTableName": "objective_questions",
+      "joinForeignKey": "question_id",
+      "joinReferenceKey": "objective_id",
+      "displayName": "Objective",
+      "column": "title",
+      "pivot": {
+        "column": "title",
+        "table": "topics",
+        "joinKey": "topic_id",
+        "joinTable": "topic_objectives",
+        "referenceKey": "id",
+        "joinReferenceKey": "objective_id",
+        "displayName": "Topic"
+      }
+    },
+    {
+      "field": "question",
+      "type": "text",
+      "displayName": "Question"
+    },
+    {
+      "field": "question_type_id",
+      "type": "enum",
+      "displayName": "Question Type",
+      "values": {
+        "Objective": 1,
+        "Theory": 2,
+        "Practical": 3
+      }
+    },
+    {
+      "field": "tag",
+      "type": "enum",
+      "displayName": "Jamb / Waec",
+      "values": {
+        "Jamb": "J",
+        "Waec": "W",
+        "Jamb & Waec": "JW"
+      }
+    },
+    {
+      "field": "question_details",
+      "type": "text",
+      "displayName": "Question Details"
+    },
+    {
+      "field": "question_image",
+      "type": "image",
+      "displayName": "Question Image"
+    },
+    {
+      "field": "option_1",
+      "type": "text",
+      "displayName": "Option A"
+    },
+    {
+      "field": "option_2",
+      "type": "text",
+      "displayName": "Option B"
+    },
+    {
+      "field": "option_3",
+      "type": "text",
+      "displayName": "Option C"
+    },
+    {
+      "field": "option_4",
+      "type": "text",
+      "displayName": "Option D"
+    },
+    {
+      "field": "short_answer",
+      "type": "enum",
+      "values": {
+        "Option A": "option_1",
+        "Option B": "option_2",
+        "Option C": "option_3",
+        "Option D": "option_4"
+      },
+      "displayName": "Option Answer"
+    },
+    {
+      "field": "full_answer",
+      "type": "text",
+      "displayName": "Answer"
+    },
+    {
+      "field": "answer_image",
+      "type": "image",
+      "displayName": "Answer Image"
+    },
+    {
+      "field": "answer_details",
+      "type": "text",
+      "displayName": "Answer Details"
+    },
+    {
+      "field": "__edit",
+      "type": "action",
+      "action": "edit",
+      "displayName": "Edit"
+    },
+    {
+      "field": "__delete",
+      "type": "action",
+      "action": "delete",
+      "displayName": "Delete"
+    }
+  ]
+}

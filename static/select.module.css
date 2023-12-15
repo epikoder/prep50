@@ -1,0 +1,13 @@
+:host {
+  background-color: buttonface;
+  display: inline-block;
+  align-items: center;
+  border-radius: 0px;
+  border-color: lightgrey;
+}
+
+[data-selector-option]:hover {
+  cursor: pointer;
+  color: white;
+  background-color: grey;
+}

@@ -1,0 +1,83 @@
+{
+  "name": "Subject",
+  "table": "subjects",
+  "uniqueId": "id",
+  "attributes": [
+    {
+      "field": "id",
+      "type": "bigint"
+    },
+    {
+      "field": "name",
+      "type": "string"
+    },
+    {
+      "field": "description",
+      "type": "text"
+    },
+    {
+      "field": "tag",
+      "type": "enum",
+      "displayName": "Jamb / Waec",
+      "values": {
+        "Jamb": "J",
+        "Waec": "W",
+        "Jamb & Waec": "JW"
+      }
+    },
+    {
+      "field": "topics",
+      "type": "relation",
+      "target": "topics:subject_id",
+      "collection": "topic",
+      "displayName": "Topics",
+      "relation": {
+        "type": "oneToMany",
+        "reference": "backward",
+        "column": "id"
+      }
+    },
+    {
+      "field": "objectives",
+      "type": "relation",
+      "target": "objectives:subject_id",
+      "collection": "objective",
+      "displayName": "Objectives",
+      "relation": {
+        "type": "oneToMany",
+        "reference": "backward",
+        "column": "id"
+      }
+    },
+    {
+      "field": "questions",
+      "type": "relation",
+      "target": "questions:subject_id",
+      "collection": "question",
+      "displayName": "Questions",
+      "relation": {
+        "type": "oneToMany",
+        "reference": "backward",
+        "column": "id"
+      }
+    },
+    {
+      "field": "lessons",
+      "type": "relation",
+      "target": "lessons:subject_id",
+      "collection": "lesson",
+      "displayName": "Lessons",
+      "relation": {
+        "type": "oneToMany",
+        "reference": "backward",
+        "column": "id"
+      }
+    },
+    {
+      "field": "__edit",
+      "type": "action",
+      "action": "edit",
+      "displayName": "Edit"
+    }
+  ]
+}
