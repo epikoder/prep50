@@ -9,11 +9,7 @@
     "preview": "deno run -A main.ts",
     "update": "deno run -A -r https://fresh.deno.dev/update ."
   },
-  "lint": {
-    "rules": {
-      "tags": ["fresh", "recommended"]
-    }
-  },
+  "lint": { "rules": { "tags": ["fresh", "recommended"] } },
   "exclude": ["**/_fresh/*"],
   "imports": {
     "$fresh/": "https://deno.land/x/fresh@1.6.1/",
@@ -33,11 +29,8 @@
     "$logging/": "https://deno.land/x/fresh_logging@1.1.2/",
     "preact-mui": "npm:/preact-mui@latest",
     "@aws-sdk/client-s3": "npm:/@aws-sdk/client-s3",
-    "purify":"npm:/dompurify"
+    "purify": "npm:/dompurify"
   },
-  "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "preact"
-  },
+  "compilerOptions": { "jsx": "react-jsx", "jsxImportSource": "preact" },
   "nodeModulesDir": true
 }

@@ -18,7 +18,7 @@ export default class Builder {
   private _paginateLimit = 10;
   private readonly _debug: boolean;
   constructor({ debug, client }: { debug?: boolean; client: Client }) {
-    this._debug = false; //!!debug;
+    this._debug = !!debug;
     this._db = client;
   }
 
