@@ -1,4 +1,4 @@
-FROM denoland/deno:1.39.0
+FROM denoland/deno:1.38.3
 
 ARG GIT_REVISION
 
