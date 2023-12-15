@@ -5,6 +5,7 @@ export const config: RouteConfig = {
   skipInheritedLayouts: true,
 };
 
+// deno-lint-ignore no-explicit-any
 export const handler: Handlers<any, State> = {
   GET(req, ctx) {
     return ctx.render({
@@ -14,30 +15,43 @@ export const handler: Handlers<any, State> = {
   },
 
   async POST(req, ctx) {
-    const formdata = await req.formData();
-    const user = await ctx.state.context.auth({
-      username: formdata.get("email") as string,
-      password: formdata.get("password") as string,
-    });
-    if (!user) {
+    try {
+      const formdata = await req.formData();
+      const user = await ctx.state.context.auth({
+        username: formdata.get("email") as string,
+        password: formdata.get("password") as string,
+      });
+      if (!user) {
+        return new Response(null, {
+          status: 303,
+          headers: {
+            location: "/login",
+            ["x-chained-message"]: "Invalid Email/Password",
+            ["x-chained-status"]: "failed",
+          },
+        });
+      }
+      ctx.state.user = user;
+      return new Response(null, {
+        status: 303,
+        headers: {
+          location: "/collections",
+        },
+      });
+    } catch (error) {
+      console.error(error);
       return new Response(null, {
         status: 303,
         headers: {
           location: "/login",
-          ["x-chained-message"]: "Invalid Email/Password",
+          ["x-chained-message"]: "Something went wrong",
           ["x-chained-status"]: "failed",
         },
       });
     }
-    ctx.state.user = user;
-    return new Response(null, {
-      status: 303,
-      headers: {
-        location: "/collections",
-      },
-    });
   },
 };
+
 export default function LoginPage({ data }: PageProps) {
   const { message, status } = data as {
     message?: string;
