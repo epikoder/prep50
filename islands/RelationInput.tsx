@@ -1,5 +1,5 @@
 import { useSignal, useSignalEffect } from "@preact/signals";
-import { useEffect } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 
 interface RelationInputProps {
   displayName: string;
@@ -14,6 +14,7 @@ export default function RelationInput(
 ) {
   const options = useSignal<DBResult[]>([]);
   const loading = useSignal(true);
+  const ref = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
     const fetchNode = async (cfg: RConfigAttribute, query?: string) => {
@@ -30,6 +31,9 @@ export default function RelationInput(
         if (res.status !== 200) throw new Error(res.statusText);
         const { data } = await res.json() as { data: DBResult[] };
         options.value = data;
+        if (ref.current) {
+          ref.current.dispatchEvent(new Event("options-loaded"));
+        }
       } catch (error) {
         console.error(error);
       }
@@ -49,25 +53,14 @@ export default function RelationInput(
         if (!selectEl) return;
 
         const key = parent.field;
-        selectEl.addEventListener("change", (ev) => {
+        const changeFn = (ev: Event) => {
           fetchNode(
             config,
             `${key}=${(ev.target as HTMLSelectElement)?.value}`,
           );
-        });
-        const observer = new MutationObserver(function (mutations) {
-          mutations.forEach(function (mutation) {
-            console.log("Do your thing", mutation);
-          });
-        });
-        observer.observe(
-          selectEl,
-          {
-            attributes: true,
-            attributeFilter: ["lang"],
-            subtree: true,
-          },
-        );
+        };
+        selectEl.addEventListener("change", changeFn);
+        selectEl.addEventListener("options-loaded", changeFn);
         console.log("WATCHING --- ", "relation-" + parent.field);
 
         n = setInterval(() => {
@@ -79,16 +72,6 @@ export default function RelationInput(
       }
     };
     reactToParentNode();
-
-    // var observerConfig = {
-    //     attributes: true,
-    //     attributeFilter: ['lang'],
-    //     subtree: true
-    // };
-
-    // var target = document.querySelector('.languages');
-
-    // observer.observe(target, observerConfig);
     return () => clearTimeout(n);
   }, []);
 
@@ -102,6 +85,7 @@ export default function RelationInput(
           id={"relation-" + config.field}
           name={config.field}
           class={"dark:bg-gray-800"}
+          ref={ref}
         >
           {loading.value && <option disabled>{defaultOption}</option>}
           {!loading.value && options.value.map((v, i) => (
