@@ -12,7 +12,7 @@ export default function MediaInput(
 ) {
   const isActive = useSignal(true);
   const value = useSignal(defaultValue);
-  const preview = useSignal<string | Blob | null | undefined>(null);
+  const preview = useSignal<string | undefined>(undefined);
 
   const ref = useRef<HTMLInputElement>(null);
   const _onClick = () => {
@@ -74,7 +74,7 @@ export default function MediaInput(
       document.body.append(mc);
     }
     const img = document.createElement("img");
-    img.src = value ? assets(value.value) : "";
+    img.src = value ? assets(value.value) : preview.value || "";
 
     mc!.innerHTML = "";
     mc!.appendChild(img);

@@ -29,6 +29,7 @@ export default class Builder {
     const { debug, ...c } = config;
     const client = await new Client().connect({
       ...c,
+      poolSize: 2
     });
     await client.execute(`SELECT uuid()`);
     Builder.builder = new Builder({ debug: debug, client });

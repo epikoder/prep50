@@ -18,7 +18,7 @@ const s3Client = () =>
   });
 
 const generateUploadFileParam = (
-  { name, body }: { name: string; body: Blob | ArrayBuffer },
+  { name, body }: { name: string; body: ArrayBuffer },
 ): PutObjectCommandInput => ({
   Bucket: `${Deno.env.get("BUCKET_NAME") || "prep50"}`,
   ACL: "public-read",
@@ -28,7 +28,7 @@ const generateUploadFileParam = (
 
 // Step 4: Define a function that uploads your object using SDK's PutObjectCommand object and catches any errors.
 export default async function uploadObject(
-  param: { name: string; body: Blob | ArrayBuffer },
+  param: { name: string; body: ArrayBuffer },
 ) {
   const dir = Deno.env.get("SPACES_DIRECTORY");
   const cfg = generateUploadFileParam({
