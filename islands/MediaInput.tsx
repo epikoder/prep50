@@ -11,7 +11,7 @@ export default function MediaInput(
   { attribute, value: defaultValue }: MediaInputProps,
 ) {
   const isActive = useSignal(true);
-  const value = useSignal(defaultValue);
+  const _default = useSignal(defaultValue);
   const preview = useSignal<string | undefined>(undefined);
 
   const ref = useRef<HTMLInputElement>(null);
@@ -45,7 +45,7 @@ export default function MediaInput(
 
   const _delete = () => {
     preview.value = "";
-    value.value = "";
+    _default.value = "";
   };
 
   const _view = () => {
@@ -74,7 +74,11 @@ export default function MediaInput(
       document.body.append(mc);
     }
     const img = document.createElement("img");
-    img.src = value ? assets(value.value) : preview.value || "";
+    img.src = preview.value
+      ? preview.value
+      : _default.value
+      ? assets(_default.value)
+      : "";
 
     mc!.innerHTML = "";
     mc!.appendChild(img);
@@ -90,15 +94,15 @@ export default function MediaInput(
         style={{
           backgroundImage: preview.value
             ? `url(${preview.value})`
-            : value
-            ? `url(${assets(value.value)})`
+            : _default
+            ? `url(${assets(_default.value)})`
             : undefined,
         }}
         disabled={!isActive.value}
-        onClick={preview.value || value.value ? undefined : _onClick}
+        onClick={preview.value || _default.value ? undefined : _onClick}
       >
-        {!preview.value && !value.value && `Select ${attribute.type}`}
-        {(preview.value || value.value) && (
+        {!preview.value && !_default.value && `Select ${attribute.type}`}
+        {(preview.value || _default.value) && (
           <div class="flex justify-center items-center flex-col w-full h-full">
             <div class={"space-x-2 flex"}>
               <div
@@ -120,7 +124,7 @@ export default function MediaInput(
                   />
                 </svg>
               </div>
-              {(value && attribute.type === "image") && (
+              {(_default && attribute.type === "image") && (
                 <div
                   class={"p-1 hover:text-blue-500 hover:bg-gray-400 bg-opacity-60 rounded-md"}
                   onClick={_view}
@@ -150,7 +154,7 @@ export default function MediaInput(
           </div>
         )}
       </div>
-      {(value.value && ref.current) && (
+      {(_default.value && ref.current) && (
         <div>
           {console.log(ref.current.files)}
           {ref.current.files!.length > 0 && ref.current!.files![0].name}
