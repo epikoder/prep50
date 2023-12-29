@@ -18,5 +18,10 @@ table tr:first-child td {
   border-top: none !important;
 }
 table tr:last-child td {
+  border-top: 0.5px solid black !important;
   border-bottom: none !important;
+}
+
+table p {
+    display: inline-block;
 }
