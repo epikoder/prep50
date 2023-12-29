@@ -3,14 +3,29 @@ import Builder from "../../../libs/builder.ts";
 import { getSchema } from "../../../libs/helper.ts";
 import { State } from "../../_middleware.ts";
 
+// deno-lint-ignore no-explicit-any
 export const handler: Handlers<any, State> = {
   async GET(_, ctx) {
     const collection = ctx.params.collection;
     const schema = getSchema(ctx, collection);
     if (!schema) return new Response("{}", { status: 404 });
 
-    const q: Record<string, string> = {};
-    for (const [k, v] of Object.entries(ctx.state.jsonQuery)) {
+    const q: Record<string, string | WhereQuery> = {};
+    const jq = ctx.state.jsonQuery;
+    let searchTokens: string[] = [];
+    let fields: string[] = [];
+
+    if (jq["search"]) {
+      searchTokens = jq["search"].replaceAll(/^s+/g, " ").trim().split(" ");
+      delete jq["search"];
+    }
+
+    if (jq["fields"]) {
+      const f = jq["fields"];
+      fields = f.split(",");
+      delete jq["fields"];
+    }
+    for (const [k, v] of Object.entries(jq)) {
       const attr = schema.attributes.find((attr) => attr.field == k);
       if (attr) {
         const hasDirectParentRelation = attr.type === "relation" &&
@@ -30,8 +45,12 @@ export const handler: Handlers<any, State> = {
         ] = v;
       } else q[`${schema.table}.${k}`] = v;
     }
-    const { data } = await Builder.instance().getAll(schema, q, false);
-    return new Response(JSON.stringify({ data }), {
+    for (const f of fields) {
+      q[`${schema.table}.${f}`] = { operator: "LIKE", value: searchTokens };
+    }
+
+    const { data } = await Builder.instance().getAll(schema, q, false, 1, 500);
+    return new Response(JSON.stringify({ data, schema }), {
       headers: {
         "content-type": "application/json",
       },

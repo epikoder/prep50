@@ -39,6 +39,7 @@ interface CommonAttributes {
     | "boolean"
     | "date"
     | "email";
+  searchable?: boolean;
 }
 interface MediaAttribute {
   type: "image" | "video" | "audio" | "file";
@@ -137,4 +138,10 @@ interface User {
   id: string | number | bigint;
   email: string;
   [k: string]: any;
+}
+
+type NullString = string | null;
+interface WhereQuery {
+  value: string[];
+  operator: "LIKE" | "=";
 }

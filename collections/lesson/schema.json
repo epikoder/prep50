@@ -46,7 +46,8 @@
     },
     {
       "field": "content",
-      "type": "text"
+      "type": "text",
+      "searchable": true
     },
     {
       "field": "docs_url",

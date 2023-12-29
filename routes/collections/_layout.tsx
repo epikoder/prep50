@@ -10,7 +10,7 @@ import UserIcon from "../../islands/Icons/UserIcon.tsx";
 export default async function CollectionLayout({ url }: Request, ctx: FreshApp) {
   const collections = getCollections(ctx);
   return (
-    <div class={"flex space-x-2 p-4"}>
+    <div class={"flex space-x-2 py-2 px-4"}>
       <div class={"space-y-2 w-md"}>
         {collections.map((v, i) => (
           <div>

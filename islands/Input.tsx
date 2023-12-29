@@ -50,7 +50,10 @@ export default function Input({ attribute, data }: InputProps) {
             editor.on('change', (ev) => {
                 txtarea.innerHTML = editor.getContent();
             })
-          }
+          },
+          // external_plugins: {
+          //   tiny_mce_wiris: 'https://www.npmjs.com/package/@wiris/mathtype-tinymce4/plugin.min.js',
+          // }
         };
         if (localStorage.getItem('tablerTheme') === 'dark') {
           options.skin = 'oxide-dark';

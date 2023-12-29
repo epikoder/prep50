@@ -43,7 +43,8 @@
     {
       "field": "question",
       "type": "text",
-      "displayName": "Question"
+      "displayName": "Question",
+      "searchable": true
     },
     {
       "field": "question_type_id",

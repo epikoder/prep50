@@ -1,6 +1,8 @@
 import { PageProps } from "$fresh/server.ts";
 import BackButton from "../../islands/BackButton.tsx";
+import Input from "../../islands/Input.tsx";
 import JumpPage from "../../islands/JumpPage.tsx";
+import Search from "../../islands/Search.tsx";
 import Table from "../../islands/Table.tsx";
 import Builder from "../../libs/builder.ts";
 import { FreshApp } from "../_middleware.ts";
@@ -39,6 +41,18 @@ export default function Model(props: PageProps) {
     collection: string;
     pagination: Pagination;
   };
+  const searchable = schema.attributes
+    .filter((
+      a,
+    ) => {
+      switch (a.type) {
+        case "string":
+        case "text":
+          return a.searchable;
+        default:
+          return false;
+      }
+    }) as (Attributes & CommonAttributes)[];
 
   return (
     <div class={"w-[90%]"}>
@@ -49,6 +63,9 @@ export default function Model(props: PageProps) {
             <span>{collection}</span>
             <span class={"font-sans text-xs"}>Total: {pagination.total}</span>
           </div>
+          {searchable.length > 0 && (
+            <Search attributes={searchable} collection={collection} />
+          )}
         </div>
         <div class={"space-x-2"}>
           <a
@@ -82,7 +99,7 @@ function RenderPagination(
       {currentPage !== 1 && (
         <Page currentPage={currentPage} page={1} collection={collection} />
       )}
-      <RenderClosePage
+      <RenderSiblingPage
         currentPage={currentPage}
         collection={collection}
       />
@@ -91,7 +108,7 @@ function RenderPagination(
         collection={collection}
         page={currentPage}
       />
-      <RenderClosePage
+      <RenderSiblingPage
         currentPage={currentPage}
         collection={collection}
         endOrStart={lastPage}
@@ -125,7 +142,7 @@ const Page = (
 );
 
 const MAX_PREVIEW = 5;
-const RenderClosePage = (
+const RenderSiblingPage = (
   { currentPage, endOrStart = 1, collection }: {
     currentPage: number;
     endOrStart?: number;
@@ -141,7 +158,6 @@ const RenderClosePage = (
     ? MAX_PREVIEW
     : endOrStart - currentPage;
 
-    
   const pageNumbers = Array.from(
     Array(isStart && numberOfLinks ? numberOfLinks - 1 : numberOfLinks).keys(),
   ).map((
@@ -154,7 +170,7 @@ const RenderClosePage = (
       {pageNumbers.slice(
         0,
         !isStart && endOrStart - currentPage <= MAX_PREVIEW
-          ? pageNumbers.length - 2
+          ? pageNumbers.length - 1
           : undefined,
       ).map((v, k) => (
         <Page

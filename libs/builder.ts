@@ -15,7 +15,7 @@ type QueryRelation = Omit<Attributes & RelationAttribute, "target"> & {
 export default class Builder {
   private static builder: Builder;
   private readonly _db: Client;
-  private _paginateLimit = 10;
+  private _paginateLimit = 100;
   private readonly _debug: boolean;
   constructor({ debug, client }: { debug?: boolean; client: Client }) {
     this._debug = !!debug;
@@ -29,7 +29,7 @@ export default class Builder {
     const { debug, ...c } = config;
     const client = await new Client().connect({
       ...c,
-      poolSize: 2
+      poolSize: 2,
     });
     await client.execute(`SELECT uuid()`);
     Builder.builder = new Builder({ debug: debug, client });
@@ -137,9 +137,10 @@ export default class Builder {
 
   async getAll(
     schema: Schema,
-    params?: Record<string, string>,
+    params?: Record<string, string | WhereQuery>,
     usePagination: boolean = true,
     currentPage?: number,
+    perPage?: number,
   ) {
     let query = this._builder().queryBuilder().table(schema.table);
     let relations = this._relationBinding(schema);
@@ -147,24 +148,51 @@ export default class Builder {
     query = this._selectRelation(query, schema, relations);
     query = this._joinRelation(query, schema, relations);
     query = this._polyJoinRelation(query, schema);
+    let __values__: (string | number)[] = [];
     for (let p of Object.entries(params || {})) {
-      query.where(`${p[0]}`, p[1]);
+      switch (typeof p[1]) {
+        case "string":
+          query.where(`${p[0]}`, p[1]);
+          __values__ = __values__.concat(p[1]);
+          break;
+        default: {
+          switch (p[1].operator) {
+            case "LIKE":
+              for (const tk of p[1].value) {
+                query.where(`${p[0]}`, p[1].operator, `%${tk}%`);
+                __values__ = __values__.concat(tk);
+              }
+              break;
+            default:
+              for (const tk of p[1].value) {
+                query.where(`${p[0]}`, p[1].operator, tk);
+                __values__ = __values__.concat(tk);
+              }
+          }
+        }
+      }
     }
 
     if (!usePagination) {
+      console.log(__values__);
+      if (perPage) {
+        query.limit(perPage);
+        __values__ = __values__.concat(perPage);
+      }
       this._log("getAll ---- ", query.toQuery());
       const result = await this._db.execute(
         query.toQuery(),
-        this._toArray(params),
+        this._toArray(__values__),
       );
       return {
         data: result.rows || [],
         pagination: {},
       };
     }
-    return this._paginate(query, schema, params, {
+
+    return this._paginate(query, schema, __values__, {
       currentPage: currentPage || 1,
-      perPage: 100,
+      perPage: perPage || this._paginateLimit,
     });
   }
 
@@ -381,7 +409,7 @@ export default class Builder {
   private async _paginate(
     query: Knex.QueryBuilder,
     schema: Schema,
-    params: Record<string, string> = {},
+    values: (string | number)[] = [],
     {
       perPage = 10,
       currentPage = 1,
@@ -438,10 +466,10 @@ export default class Builder {
     }
 
     query.offset(offset).limit(limit);
-    this._log("paginate ---- ", query.toQuery(), params, offset, limit);
+    this._log("paginate ---- ", query.toQuery(), values, offset, limit);
     const result = await this._db.execute(
       query.toQuery(),
-      this._toArray(params).concat(limit),
+      values.concat(limit),
     );
     pagination = {
       ...pagination,

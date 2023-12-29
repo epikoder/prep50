@@ -18,7 +18,8 @@
     },
     {
       "field": "content",
-      "type": "text"
+      "type": "text",
+      "searchable": true
     },
     {
       "field": "__edit",

@@ -21,7 +21,8 @@
     },
     {
       "field": "title",
-      "type": "string"
+      "type": "string",
+      "searchable": true
     },
     {
       "field": "details",

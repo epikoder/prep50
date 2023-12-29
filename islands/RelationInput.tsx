@@ -96,8 +96,8 @@ export default function RelationInput(
                 v[config.column] === defaultValue ||
                 v[config.field] === defaultValue ||
                 v[displayName] === defaultValue}
+              dangerouslySetInnerHTML={{ __html: v[config.column] }}
             >
-              {v[config.column]}
             </option>
           ))}
         </select>

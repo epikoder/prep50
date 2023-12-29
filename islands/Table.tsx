@@ -143,8 +143,10 @@ function TD({ attribute, value, collection }: TDProps) {
           );
         }
         return (
-          <div class={"whitespace-nowrap"}>
-            {value}
+          <div
+            class={"whitespace-nowrap"}
+            dangerouslySetInnerHTML={{ __html: ammonia.clean(value) }}
+          >
           </div>
         );
       case "action":
