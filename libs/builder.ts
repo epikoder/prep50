@@ -17,9 +17,33 @@ export default class Builder {
   private readonly _db: Client;
   private _paginateLimit = 100;
   private readonly _debug: boolean;
-  constructor({ debug, client }: { debug?: boolean; client: Client }) {
+  private _db_config: {
+    poolSize: number;
+    username: string;
+    password: string;
+    db: string;
+    hostname: string;
+    port: number;
+    acquireConnectionTimeout: number;
+  };
+  constructor(
+    { debug, client, config }: {
+      debug?: boolean;
+      client: Client;
+      config: {
+        poolSize: number;
+        username: string;
+        password: string;
+        db: string;
+        hostname: string;
+        port: number;
+        acquireConnectionTimeout: number;
+      };
+    },
+  ) {
     this._debug = !!debug;
     this._db = client;
+    this._db_config = config;
   }
 
   public static async init(
@@ -32,7 +56,14 @@ export default class Builder {
       poolSize: 2,
     });
     await client.execute(`SELECT uuid()`);
-    Builder.builder = new Builder({ debug: debug, client });
+    Builder.builder = new Builder({
+      debug,
+      client,
+      config: {
+        ...c,
+        poolSize: 2,
+      },
+    });
     return client;
   }
 
@@ -42,6 +73,9 @@ export default class Builder {
 
   public static instance() {
     if (!this.builder) throw new Error("Builder not initialized");
+    this.builder._db.execute(`SELECT uuid()`).catch(() => {
+      console.info("INFO", "reconnecting....");
+    });
     return this.builder;
   }
 
