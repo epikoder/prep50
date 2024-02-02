@@ -2,7 +2,7 @@ import { useSignal } from "@preact/signals";
 import { useRef } from "preact/hooks";
 
 export default function JumpPage(
-  { lastPage, collection }: { lastPage: number; collection: string },
+  { lastPage, collection, query }: { lastPage: number; collection: string; query: string },
 ) {
   const value = useSignal(0);
   const ref = useRef<HTMLInputElement>(null);
@@ -24,7 +24,7 @@ export default function JumpPage(
           class={"disabled:cursor-not-allowed disabled:bg-gray-400 border rounded-md p-2 hover:bg-black hover:text-white"}
           onClick={() => {
             location.assign(
-              `/collections/${collection}?currentPage=${value.value}`,
+              `/collections/${collection}?${query}&currentPage=${value.value}`,
             );
           }}
         >

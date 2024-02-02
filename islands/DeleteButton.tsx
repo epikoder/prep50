@@ -81,6 +81,11 @@ export default function DeleteButton(
             }
             case 200: {
               if (url) {
+                const q = sessionStorage.getItem('location.query')
+                sessionStorage.removeItem('location.query');
+                if (q) {
+                  url = url + q
+                }
                 return location.replace(url);
               }
               location.reload();

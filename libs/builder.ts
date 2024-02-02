@@ -418,7 +418,7 @@ export default class Builder {
         )
           .leftJoin(
             attr.pivot.table,
-            `${attr.pivot.joinTable}.${attr.pivot.joinReferenceKey}`,
+            `${attr.pivot.joinTable}.${attr.pivot.joinKey}`,
             `${attr.pivot.table}.${attr.pivot.key || "id"}`,
           );
       }

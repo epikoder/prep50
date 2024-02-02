@@ -202,6 +202,9 @@ function Action(
         <a
           href={url}
           class={"capitalize flex space-x-1 hover:text-gray-400 dark:hover:text-gray-100 transition-all"}
+          onClick={() => {
+            sessionStorage.setItem('location.query', location.search);
+          }}
         >
           <span>
             {attribute.displayName || attribute.field}

@@ -15,19 +15,25 @@ export async function handler(req: Request, ctx: FreshApp) {
   }
 
   try {
-    const page = parseInt(ctx.state.jsonQuery["currentPage"]);
-    delete ctx.state.jsonQuery["currentPage"];
+    const page = parseInt(ctx.state.jsonQuery["current_page"]);
+    delete ctx.state.jsonQuery["current_page"];
     const builder = Builder.instance();
     const [{ data, pagination }, count] = await Promise.all([
       builder.getAll(schema, ctx.state.jsonQuery, true, isNaN(page) ? 1 : page),
       builder.count(schema),
     ]);
+
+    let uri: string[] = []
+    for (const key of (Object.keys(ctx.state.jsonQuery))) {
+      uri = uri.concat(key + '=' + ctx.state.jsonQuery[key])
+    }
     return ctx.render({
       schema,
       data,
       count,
       collection,
       pagination,
+      query: uri.join('&')
     });
   } catch (error) {
     throw new Error(error);
@@ -35,12 +41,14 @@ export async function handler(req: Request, ctx: FreshApp) {
 }
 
 export default function Model(props: PageProps) {
-  const { schema, data, collection, pagination } = props.data as {
+  const { schema, data, collection, pagination, query } = props.data as {
     schema: Schema;
     data: DBResult[];
     collection: string;
     pagination: Pagination;
+    query: string;
   };
+
   const searchable = schema.attributes
     .filter((
       a,
@@ -83,41 +91,47 @@ export default function Model(props: PageProps) {
           collection={collection}
         />
       </div>
-      <RenderPagination {...pagination} collection={collection} />
-      <JumpPage lastPage={pagination.lastPage} collection={collection} />
+      <RenderPagination {...pagination} collection={collection} query={query} />
+      <JumpPage lastPage={pagination.lastPage} collection={collection} query={query} />
     </div>
   );
 }
 
 function RenderPagination(
-  { currentPage, lastPage, prevPage, nextPage, collection }: Pagination & {
+  { currentPage, lastPage, prevPage, nextPage, collection, query }: Pagination & {
     collection: string;
+    query: string;
   },
 ) {
+  console.log("CURRENT PAGE", currentPage)
   return (
     <div class="flex justify-center space-x-2">
       {currentPage !== 1 && (
-        <Page currentPage={currentPage} page={1} collection={collection} />
+        <Page currentPage={currentPage} page={1} collection={collection} query={query} />
       )}
       <RenderSiblingPage
         currentPage={currentPage}
         collection={collection}
+        query={query}
       />
       <Page
         currentPage={currentPage}
         collection={collection}
         page={currentPage}
+        query={query}
       />
       <RenderSiblingPage
         currentPage={currentPage}
         collection={collection}
         endOrStart={lastPage}
+        query={query}
       />
       {currentPage !== lastPage && (
         <Page
           currentPage={currentPage}
           page={lastPage}
           collection={collection}
+          query={query}
         />
       )}
     </div>
@@ -125,17 +139,16 @@ function RenderPagination(
 }
 
 const Page = (
-  { page, collection, currentPage }: {
+  { page, collection, currentPage, query }: {
     page: number;
     collection: string;
     currentPage: number;
+    query: string
   },
 ) => (
   <a
-    href={`/collections/${collection}?currentPage=${page}`}
-    class={`px-2 py-1 rounded-md dark:hover:bg-gray-500 hover:bg-gray-300 text-xs ${
-      page == currentPage ? "dark:bg-gray-600 bg-gray-400 text-white" : ""
-    }`}
+    href={`/collections/${collection}?${query}&current_page=${page}`}
+    class={`px-2 py-1 rounded-md dark:hover:bg-gray-500 hover:bg-gray-300 text-xs ${page == currentPage ? "dark:bg-gray-600 bg-gray-400 text-white" : ""}`}
   >
     {page}
   </a>
@@ -143,10 +156,11 @@ const Page = (
 
 const MAX_PREVIEW = 5;
 const RenderSiblingPage = (
-  { currentPage, endOrStart = 1, collection }: {
+  { currentPage, endOrStart = 1, collection, query }: {
     currentPage: number;
     endOrStart?: number;
     collection: string;
+    query: string;
   },
 ) => {
   const isStart = currentPage >= endOrStart;
@@ -155,8 +169,8 @@ const RenderSiblingPage = (
       ? MAX_PREVIEW
       : Math.abs(endOrStart - currentPage)
     : endOrStart - currentPage > MAX_PREVIEW
-    ? MAX_PREVIEW
-    : endOrStart - currentPage;
+      ? MAX_PREVIEW
+      : endOrStart - currentPage;
 
   const pageNumbers = Array.from(
     Array(isStart && numberOfLinks ? numberOfLinks - 1 : numberOfLinks).keys(),
@@ -178,6 +192,7 @@ const RenderSiblingPage = (
           page={v}
           currentPage={currentPage}
           collection={collection}
+          query={query}
         />
       ))}
       {numberOfLinks !== 0 && pageNumbers.at(pageNumbers.length - 1) &&
