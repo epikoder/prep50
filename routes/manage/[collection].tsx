@@ -225,6 +225,29 @@ export const handler: Handlers<any, State> = {
               files.set(key, video);
             }
           }
+          break;
+        }
+        case "newsfeed": {
+          const title = formData.get("title");
+          const content = formData.get("content");
+
+          if (!title || !content) {
+            response.set("message", "Title or Content cannot be empty");
+            throw new Error();
+          }
+          queryParam["user_id"] = ctx.state.user!.id as string;
+          queryParam["slug"] = title.toString().toLowerCase().replace(
+            /^(\s|\s+)/g,
+            "-",
+          ).replace(/[^A-Za-z0-9]/g, "");
+          const photo = formData.get("photo") as File;
+          if (photo) {
+            const arr = photo.name.split(".");
+            const key = dir + cryptoRandomString({ length: 32 }) + "." +
+              arr.at(arr.length - 1);
+            queryParam["photo"] = key;
+            files.set(key, photo);
+          }
         }
       }
 

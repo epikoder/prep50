@@ -1,0 +1,41 @@
+{
+  "name": "Newsfeed",
+  "table": "newsfeeds",
+  "uniqueId": "id",
+  "attributes": [
+    {
+      "field": "id",
+      "type": "uuid"
+    },
+    {
+      "field": "title",
+      "type": "string"
+    },
+    {
+      "field": "slug",
+      "type": "string",
+      "hidden": true
+    },
+    {
+      "field": "photo",
+      "type": "image"
+    },
+    {
+      "field": "content",
+      "type": "text",
+      "searchable": true
+    },
+    {
+      "field": "__edit",
+      "type": "action",
+      "action": "edit",
+      "displayName": "Edit"
+    },
+    {
+      "field": "__delete",
+      "type": "action",
+      "action": "delete",
+      "displayName": "Delete"
+    }
+  ]
+}

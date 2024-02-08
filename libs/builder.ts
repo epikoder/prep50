@@ -66,7 +66,7 @@ export default class Builder {
   ): Promise<number> {
     let query = this._builder().queryBuilder().table(schema.table);
     query = query.insert(params);
-    console.log("Create --- ", query.toSQL().sql);
+    console.log("Create --- ", query.toSQL().sql, params);
     const result = await this._db.execute(query.toQuery());
     console.log(result);
     return result.lastInsertId!;
