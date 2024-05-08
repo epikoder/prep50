@@ -25,6 +25,7 @@ import * as $Input from "./islands/Input.tsx";
 import * as $JumpPage from "./islands/JumpPage.tsx";
 import * as $MediaInput from "./islands/MediaInput.tsx";
 import * as $RelationInput from "./islands/RelationInput.tsx";
+import * as $Search from "./islands/Search.tsx";
 import * as $Select from "./islands/Select.tsx";
 import * as $Table from "./islands/Table.tsx";
 import { type Manifest } from "$fresh/server.ts";
@@ -56,6 +57,7 @@ const manifest = {
     "./islands/JumpPage.tsx": $JumpPage,
     "./islands/MediaInput.tsx": $MediaInput,
     "./islands/RelationInput.tsx": $RelationInput,
+    "./islands/Search.tsx": $Search,
     "./islands/Select.tsx": $Select,
     "./islands/Table.tsx": $Table,
   },
