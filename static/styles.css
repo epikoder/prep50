@@ -135,9 +135,13 @@ table.data-table tr:nth-child(even) td:first-child {
 }
 
 .search-result table tr:last-child td {
+  border-top: 0.5px solid black !important;
   border-bottom: none !important;
 }
 
 .search-result p {
+  display: inline-block;
+}
+.search-result table p {
   display: inline-block;
 }
