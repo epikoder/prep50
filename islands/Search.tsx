@@ -219,7 +219,7 @@ function Render(
         {attributes.map((a, k) => (
           <div
             key={k}
-            class={"text-gray-800"}
+            class={"text-gray-800 search-result"}
             dangerouslySetInnerHTML={{
               __html: ammonia.clean(
                 (data[a.field] as string).slice(0, 300).concat(

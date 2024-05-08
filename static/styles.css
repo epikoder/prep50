@@ -22,18 +22,18 @@ select::-ms-expand {
   line-height: 3;
   background: #5c6664;
   overflow: hidden;
-  border-radius: .25em;
+  border-radius: 0.25em;
 }
 .select::after {
-  content: '\25BC';
+  content: "\25BC";
   position: absolute;
   top: 0;
   right: 0;
   padding: 0 1em;
   background: #2b2e2e;
-  cursor:pointer;
-  pointer-events:none;
-  transition:.25s all ease;
+  cursor: pointer;
+  pointer-events: none;
+  transition: 0.25s all ease;
 }
 .select:hover::after {
   color: #23b499;
@@ -61,17 +61,17 @@ select::-ms-expand {
   width: 10px;
 }
 
-table {
+table.data-table {
   border-collapse: separate !important;
   border-spacing: 0px;
 }
-table thead {
+table.data-table thead {
   position: sticky;
   top: 0;
   z-index: 1;
 }
 
-table th:first-child {
+table.data-table th:first-child {
   position: sticky;
   left: 0;
   border-right-style: solid;
@@ -82,34 +82,62 @@ table th:first-child {
 }
 
 @media (prefers-color-scheme: dark) {
-  table th:first-child {
+  table.data-table th:first-child {
     --tw-bg-opacity: 1;
     background-color: rgb(55 65 81 / var(--tw-bg-opacity));
   }
 }
-table td:first-child {
+table.data-table td:first-child {
   position: sticky;
   left: 0;
   border-right-style: solid;
   border-right-color: black !important;
   border-right-width: 0.3px;
 }
-table tr:nth-child(odd) td:first-child {
+table.data-table tr:nth-child(odd) td:first-child {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity));
 }
-table tr:nth-child(even) td:first-child {
+table.data-table tr:nth-child(even) td:first-child {
   --tw-bg-opacity: 1;
   background-color: rgb(249 250 251 / var(--tw-bg-opacity));
 }
 
 @media (prefers-color-scheme: dark) {
-  table tr:nth-child(even) td:first-child {
+  table.data-table tr:nth-child(even) td:first-child {
     --tw-bg-opacity: 1;
     background-color: rgb(31 41 55 / var(--tw-bg-opacity));
   }
-  table tr:nth-child(odd) td:first-child {
+  table.data-table tr:nth-child(odd) td:first-child {
     --tw-bg-opacity: 1;
     background-color: rgb(17 24 39 / var(--tw-bg-opacity));
   }
+}
+
+.search-result table {
+  display: inline-table;
+  border-collapse: collapse;
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+.search-result table tr td {
+  border: unset !important;
+}
+
+.search-result table tr:nth-child(odd) td {
+  border-top: 0.5px solid black !important;
+  border-bottom: 0.5px solid black !important;
+}
+
+.search-result table tr:first-child td {
+  border-top: none !important;
+}
+
+.search-result table tr:last-child td {
+  border-bottom: none !important;
+}
+
+.search-result p {
+  display: inline-block;
 }

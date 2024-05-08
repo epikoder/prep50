@@ -46,14 +46,16 @@ export default function Input({ attribute, data }: InputProps) {
             'removeformat',
           content_style:
             'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }',
+          content_css: [
+            '/tiny_mce.css'
+          ],
+          forced_root_block : "aaa",
+          newline_behaviour: "linebreak",
           setup: (editor) => {
             editor.on('change', (ev) => {
                 txtarea.innerHTML = editor.getContent();
             })
           },
-          // external_plugins: {
-          //   tiny_mce_wiris: 'https://www.npmjs.com/package/@wiris/mathtype-tinymce4/plugin.min.js',
-          // }
         };
         if (localStorage.getItem('tablerTheme') === 'dark') {
           options.skin = 'oxide-dark';
@@ -106,7 +108,7 @@ export default function Input({ attribute, data }: InputProps) {
             name={attribute.field}
             placeholder={(attribute.displayName || attribute.field)
               .toLowerCase()}
-            class={"placeholder:lowercase dark:bg-white rounded-md px-3 py-2 text-sm text-gray-800"}
+            class={"placeholder:lowercase dark:bg-white rounded-md px-3 py-2 text-sm text-gray-800 mce-styling"}
             onChange={(e) => {
               console.log(e);
             }}
