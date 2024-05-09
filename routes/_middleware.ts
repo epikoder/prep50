@@ -42,8 +42,9 @@ async function parseAuth(req: Request, ctx: FreshApp) {
     AUTH_COOKIE_KEY,
     Deno.env.get("COOKIES_SECRET")!,
   );
+  const uri = new URL(req.url);
   if (
-    !__user && !AllowGuest.includes(new URL(req.url).pathname) &&
+    !__user && !AllowGuest.includes(uri.pathname) &&
     ctx.destination === "route"
   ) {
     return new Response(null, {
@@ -69,6 +70,16 @@ async function parseAuth(req: Request, ctx: FreshApp) {
   if (!__user) {
     console.log(__user, "DELETING ...........");
     deleteCookie(resp.headers, AUTH_COOKIE_KEY);
+  }
+  if (ctx.state.user) {
+    if (uri.pathname == "/login" && ctx.destination == "route") {
+      return new Response(null, {
+        status: 303,
+        headers: {
+          location: "/",
+        },
+      });
+    }
   }
   return resp;
 }
