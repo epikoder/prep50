@@ -69,7 +69,7 @@ export class Selector<T>
   }
 
   private getMatcher(opt: T, compare: T): boolean {
-    return this.props.to_string(opt).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    return this.props.to_string(opt)
       .match(
         new RegExp(
           `^${
