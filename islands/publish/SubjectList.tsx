@@ -27,16 +27,18 @@ export default function SubjectList(
   ) => {
     const checked = ev.currentTarget.checked;
     if (checked) {
-      deletion_list.value.push(qx);
+      deletion_list.value = deletion_list.value.concat(qx);
     } else {
-      deletion_list.value.splice(
-        deletion_list.value.findIndex((e: T) => qx.subject_id == e.subject_id),
+      const index = deletion_list.value.findIndex((e: T) =>
+        qx.subject_id == e.subject_id
       );
+      if (index > -1) {
+        deletion_list.value = deletion_list.value.slice(0, index).concat(
+          deletion_list.value.slice(index + 1),
+        );
+      }
     }
     is_marked_for_delete_mutated.value = deletion_list.value.length > 0;
-    {
-      console.log(qx);
-    }
   };
 
   const _print = (id: string) => {
@@ -122,26 +124,45 @@ export default function SubjectList(
         }
         url={"/publish/update/" + id}
       />
-      <LinkButton
-        text="Walkthrough"
-        icon={
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="w-6 h-6 p-1"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"
-            />
-          </svg>
-        }
-        url={"/publish/walkthrough/" + id}
-      />
+      <div>
+        <LinkButton
+          text={`Practice ${
+            is_marked_for_delete_mutated.value
+              ? "( " + (deletion_list.value as T[]).length + " )"
+              : "All"
+          }`}
+          icon={
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-6 h-6 p-1"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"
+              />
+            </svg>
+          }
+          url={"/publish/walkthrough/" + id + "?" +
+            (is_marked_for_delete_mutated.value
+              ? (
+                deletion_list.value.map((s) => "subject_id=" + s.subject_id)
+                  .join("&")
+              )
+              : "")}
+        />
+        {is_marked_for_delete_mutated.value && (
+          <div class={"py-1 text-xs italic text-center"}>
+            {deletion_list.value.map((v: T) =>
+              v.name
+            ).join(", ")}
+          </div>
+        )}
+      </div>
       <PillButton
         text="Print"
         iconData={

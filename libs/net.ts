@@ -1,6 +1,6 @@
 
 type _ = number | string | boolean
-type Query<T> = Record<string, _ | T[]>
+type Query = Record<string, _ | _[]>
 export default class Net {
   private static __instance: Net | undefined = undefined;
   private baseUrl: string = "";
@@ -36,7 +36,7 @@ export default class Net {
 
   getReq = async <T>(
     route: string,
-    params?: Query<T>,
+    params?: Query,
     config?: RequestInit,
   ): Promise<Result<T>> => {
     try {
@@ -64,8 +64,8 @@ export default class Net {
 
   postReq = async <T>(
     route: string,
-    body?: Query<T>,
-    params?: Query<T>,
+    body?: Query,
+    params?: Query,
     config?: RequestInit,
   ): Promise<Result<T>> => {
     try {
@@ -94,8 +94,8 @@ export default class Net {
 
   putReq = async <T>(
     route: string,
-    body?: Query<T>,
-    params?: Query<T>,
+    body?: Query,
+    params?: Query,
     config?: RequestInit,
   ): Promise<Result<T>> => {
     try {
@@ -120,7 +120,7 @@ export default class Net {
 
   deleteReq = async <T>(
     route: string,
-    params?: Query<T>,
+    params?: Query,
     config?: RequestInit,
   ): Promise<Result<T>> => {
     try {

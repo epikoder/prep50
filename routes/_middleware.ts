@@ -151,7 +151,12 @@ async function parseQuery(req: Request, ctx: FreshApp) {
     const u = new URL(req.url);
     for (const [k, v] of u.searchParams.entries()) {
       if (v) {
-        m.set(k, v);
+        const existing_value = m.get(k)
+        if (!existing_value) {
+          m.set(k, v);
+        } else {
+          m.set(k, existing_value.concat("," + v))
+        }
       }
     }
   }
