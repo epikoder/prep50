@@ -18,3 +18,8 @@ export function getCollections(ctx: FreshApp) {
 export function assets(s?: string | null) {
   return CDN + s;
 }
+
+// deno-lint-ignore no-explicit-any
+export function getKeys<T extends { [_: string | number | symbol]: any }>(_: T): Array<keyof T> {
+  return Object.keys(_) as Array<keyof T>;
+}

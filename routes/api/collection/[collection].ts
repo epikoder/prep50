@@ -11,7 +11,10 @@ export const handler: Handlers<any, State> = {
     if (!schema) return new Response("{}", { status: 404 });
 
     const q: Record<string, string | WhereQuery> = {};
-    const jq = ctx.state.jsonQuery;
+    const jq: Record<string, string> = {};
+    for (const [key, value] of ctx.state.query.entries()) {
+      if (value) jq[key] = value
+    }
     let searchTokens: string[] = [];
     let fields: string[] = [];
 
@@ -35,10 +38,9 @@ export const handler: Handlers<any, State> = {
           (attr.relation === "belongsTo" ||
             attr.relation === "belongsToMany");
         q[
-          `${
-            hasDirectParentRelation
-              ? attr.target.replace(":", ".")
-              : belongToWithJoinRelation
+          `${hasDirectParentRelation
+            ? attr.target.replace(":", ".")
+            : belongToWithJoinRelation
               ? attr.joinTableName + "." + attr.joinReferenceKey
               : k
           }`

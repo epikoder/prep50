@@ -1,7 +1,7 @@
 // deno-lint-ignore-file
 import databaseConfig from "../config/database.ts";
 import { COLLECTION_DIR, SCHEMA } from "./constants.ts";
-import { Client } from "https://deno.land/x/mysql@v2.12.1/mod.ts";
+import { Client, Connection } from "https://deno.land/x/mysql@v2.12.1/mod.ts";
 
 import { Knex } from "knex";
 import Dex from "https://deno.land/x/dex@1.0.2/mod.ts";
@@ -65,6 +65,17 @@ export default class Builder {
       },
     });
     return client;
+  }
+
+  public static async getConnection(): Promise<Connection> {
+    return (await Builder.builder._db.useConnection(async (conn) => {
+      try {
+        await conn.execute(`SELECT uuid()`)
+      } catch (error) {
+        await conn.connect();
+      }
+      return Promise.resolve(conn)
+    }))
   }
 
   public static async end() {
@@ -270,13 +281,12 @@ export default class Builder {
     }
     for (const a of actions) {
       select = select.concat(
-        `${schema.table}.${schema.uniqueId || "id"} as ${
-          a.displayName || a.field
+        `${schema.table}.${schema.uniqueId || "id"} as ${a.displayName || a.field
         }`,
       );
     }
     this._log("_select", builder.toQuery());
-    return <T> builder.select(select);
+    return <T>builder.select(select);
   }
 
   private _selectRelation<T extends Knex.QueryBuilder>(
@@ -286,18 +296,16 @@ export default class Builder {
   ): T {
     for (const r of rel) {
       if (r.relation.type === "oneToMany") {
-        let field = `${
-          r.relation.reference === "forward" ? r.target[0] : schema.table
-        }.${
-          r.relation.reference === "forward"
+        let field = `${r.relation.reference === "forward" ? r.target[0] : schema.table
+          }.${r.relation.reference === "forward"
             ? r.relation.column || r.field
             : r.relation.column
-        } as ${r.displayName || r.field}`;
+          } as ${r.displayName || r.field}`;
         builder.select(field);
       }
     }
     this._log("_selectRelation", builder.toQuery());
-    return <T> builder;
+    return <T>builder;
   }
 
   private _joinRelation<T extends Knex.QueryBuilder>(
@@ -354,8 +362,7 @@ export default class Builder {
         t[1] = a.target.replace(":", ".");
         const target: QueryRelation["target"] = [
           ...(t as [string, string]),
-          `${schema.table}.${
-            a.relation.reference == "backward" ? a.relation.column : a.field
+          `${schema.table}.${a.relation.reference == "backward" ? a.relation.column : a.field
           }`,
         ];
         r = r.concat({ ...a, target });
@@ -374,20 +381,17 @@ export default class Builder {
 
       let field = "";
       if (attr.relation === "belongsTo" || attr.relation === "belongsToMany") {
-        field = `${attr.tableName}.${attr.column || attr.foreignKey || "id"}${
-          attr.displayName ? " as " + attr.displayName : ""
-        }`;
+        field = `${attr.tableName}.${attr.column || attr.foreignKey || "id"}${attr.displayName ? " as " + attr.displayName : ""
+          }`;
         select.set(field, attr);
         if (attr.pivot) {
-          const f = `${attr.pivot.table}.${
-            attr.pivot.column || attr.pivot.key || "id"
-          }${attr.pivot.displayName ? " as " + attr.pivot.displayName : ""}`;
+          const f = `${attr.pivot.table}.${attr.pivot.column || attr.pivot.key || "id"
+            }${attr.pivot.displayName ? " as " + attr.pivot.displayName : ""}`;
           builder.select(f);
         }
       } else {
-        field = `${schema.table}.${schema.uniqueId || "id"} AS ${
-          attr.displayName || attr.field
-        }`;
+        field = `${schema.table}.${schema.uniqueId || "id"} AS ${attr.displayName || attr.field
+          }`;
         // TODO :: HAS-
       }
 

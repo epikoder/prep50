@@ -1,6 +1,5 @@
 import { useEffect } from "preact/hooks";
 import MediaInput from "./MediaInput.tsx";
-import { Selector } from "./Select.tsx";
 
 interface InputProps {
   attribute: SchemaAttribute;

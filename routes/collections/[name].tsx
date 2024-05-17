@@ -15,17 +15,22 @@ export async function handler(req: Request, ctx: FreshApp) {
   }
 
   try {
-    const page = parseInt(ctx.state.jsonQuery["current_page"]);
-    delete ctx.state.jsonQuery["current_page"];
+    const page = parseInt(ctx.state.query.get("current_page")!);
+    ctx.state.query.delete("current_page");
     const builder = Builder.instance();
+
+    const query: Record<string, string> = {};
+    for (const [key, value] of ctx.state.query.entries()) {
+      if (value) query[key] = value;
+    }
     const [{ data, pagination }, count] = await Promise.all([
-      builder.getAll(schema, ctx.state.jsonQuery, true, isNaN(page) ? 1 : page),
+      builder.getAll(schema, query, true, isNaN(page) ? 1 : page),
       builder.count(schema),
     ]);
 
-    let uri: string[] = []
-    for (const key of (Object.keys(ctx.state.jsonQuery))) {
-      uri = uri.concat(key + '=' + ctx.state.jsonQuery[key])
+    let uri: string[] = [];
+    for (const key of (Object.keys(query))) {
+      uri = uri.concat(key + "=" + query[key]);
     }
     return ctx.render({
       schema,
@@ -33,7 +38,7 @@ export async function handler(req: Request, ctx: FreshApp) {
       count,
       collection,
       pagination,
-      query: uri.join('&')
+      query: uri.join("&"),
     });
   } catch (error) {
     throw new Error(error);
@@ -92,22 +97,33 @@ export default function Model(props: PageProps) {
         />
       </div>
       <RenderPagination {...pagination} collection={collection} query={query} />
-      <JumpPage lastPage={pagination.lastPage} collection={collection} query={query} />
+      <JumpPage
+        lastPage={pagination.lastPage}
+        collection={collection}
+        query={query}
+      />
     </div>
   );
 }
 
 function RenderPagination(
-  { currentPage, lastPage, prevPage, nextPage, collection, query }: Pagination & {
-    collection: string;
-    query: string;
-  },
+  { currentPage, lastPage, prevPage, nextPage, collection, query }:
+    & Pagination
+    & {
+      collection: string;
+      query: string;
+    },
 ) {
-  console.log("CURRENT PAGE", currentPage)
+  console.log("CURRENT PAGE", currentPage);
   return (
     <div class="flex justify-center space-x-2">
       {currentPage !== 1 && (
-        <Page currentPage={currentPage} page={1} collection={collection} query={query} />
+        <Page
+          currentPage={currentPage}
+          page={1}
+          collection={collection}
+          query={query}
+        />
       )}
       <RenderSiblingPage
         currentPage={currentPage}
@@ -143,12 +159,14 @@ const Page = (
     page: number;
     collection: string;
     currentPage: number;
-    query: string
+    query: string;
   },
 ) => (
   <a
     href={`/collections/${collection}?${query}&current_page=${page}`}
-    class={`px-2 py-1 rounded-md dark:hover:bg-gray-500 hover:bg-gray-300 text-xs ${page == currentPage ? "dark:bg-gray-600 bg-gray-400 text-white" : ""}`}
+    class={`px-2 py-1 rounded-md dark:hover:bg-gray-500 hover:bg-gray-300 text-xs ${
+      page == currentPage ? "dark:bg-gray-600 bg-gray-400 text-white" : ""
+    }`}
   >
     {page}
   </a>
@@ -169,8 +187,8 @@ const RenderSiblingPage = (
       ? MAX_PREVIEW
       : Math.abs(endOrStart - currentPage)
     : endOrStart - currentPage > MAX_PREVIEW
-      ? MAX_PREVIEW
-      : endOrStart - currentPage;
+    ? MAX_PREVIEW
+    : endOrStart - currentPage;
 
   const pageNumbers = Array.from(
     Array(isStart && numberOfLinks ? numberOfLinks - 1 : numberOfLinks).keys(),

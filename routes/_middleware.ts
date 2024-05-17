@@ -14,7 +14,6 @@ import { AllowGuest } from "../libs/constants.ts";
 export interface State {
   context: AppContext;
   query: Map<string, string>;
-  jsonQuery: Record<string, string>;
   chain: Record<string, string>;
   user: User | null;
 }
@@ -58,7 +57,7 @@ async function parseAuth(req: Request, ctx: FreshApp) {
   if (__user) {
     __user = __user.split(".").length > 1 ? __user.split(".")[0] : __user;
     try {
-      ctx.state.user = <User> JSON.parse(
+      ctx.state.user = <User>JSON.parse(
         new TextDecoder().decode(decodeBase64(__user)) || "{}",
       );
     } catch (error) {
@@ -148,18 +147,15 @@ async function getChainHeaders(_: Request, ctx: FreshApp) {
 
 async function parseQuery(req: Request, ctx: FreshApp) {
   const m = new Map<string, string>();
-  const js: Record<string, string> = {};
   if (ctx.destination === "route") {
     const u = new URL(req.url);
     for (const [k, v] of u.searchParams.entries()) {
       if (v) {
         m.set(k, v);
-        js[k] = v;
       }
     }
   }
   ctx.state.query = m;
-  ctx.state.jsonQuery = js;
   const resp = await ctx.next();
   return resp;
 }
