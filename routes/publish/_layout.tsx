@@ -5,7 +5,7 @@ export const config: LayoutConfig = {
   skipInheritedLayouts: true,
 };
 
-export default function _({ Component }: PageProps) {
+export default function _({ Component, url }: PageProps) {
   return (
     <Fragment>
       <div class={"font-serif text-sm"}>
@@ -35,7 +35,10 @@ export default function _({ Component }: PageProps) {
               </a>
             </div>
             <div class={"text-sm uppercase pl-8"}>
-              {"Prep50"}
+              {"Prep50"}{" "}
+              {url.pathname.includes("/walkthrough/") && (
+                <span>{" Walkthrough"}</span>
+              )}
             </div>
             <a href="/publish/create" class={"flex space-x-2 items-center"}>
               <svg

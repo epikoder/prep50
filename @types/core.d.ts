@@ -18,3 +18,7 @@ interface Result<V, Err = Error | null> {
   Ok: V | null;
   Err: Err;
 }
+
+type Writable<T> = {
+  -readonly [P in keyof T]: T[P] extends (infer U)[] ? Writable<U>[] : Writable<T[P]>;
+};

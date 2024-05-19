@@ -3,10 +3,11 @@ import { JSX } from "preact/jsx-runtime";
 import { assets } from "../libs/helper.ts";
 
 const QuestionView = (
-  { question, controller, is_selectable }: {
+  { question, controller, is_selectable, style }: {
     question: Question;
     controller?: Signal<Record<string, string>>;
     is_selectable?: boolean;
+    style?: JSX.HTMLAttributes["class"];
   },
 ) => {
   const onChecked = (ev: JSX.TargetedEvent<HTMLInputElement>) => {
@@ -18,7 +19,7 @@ const QuestionView = (
   };
 
   return (
-    <div class={"p-4 rounded shadow-md space-x-2 flex w-full"}>
+    <div class={style ?? "p-4 rounded shadow-md space-x-2 flex w-full"}>
       {is_selectable && (
         <div>
           <input

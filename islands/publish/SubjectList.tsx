@@ -1,5 +1,5 @@
 import { Signal, useComputed, useSignal } from "@preact/signals";
-import { JSX } from "preact/jsx-runtime";
+import { Fragment, JSX } from "preact/jsx-runtime";
 import Draggable from "../../components/Draggable.tsx";
 import List from "../../components/List.tsx";
 import LinkButton from "../../components/LinkButton.tsx";
@@ -8,6 +8,38 @@ import { showSuccess } from "../../libs/toast.ts";
 import {} from "npm:docx";
 import PublishDeleteButton from "../../components/PublishDeleteButton.tsx";
 import PillButton from "../../components/PillButton.tsx";
+import Net from "../../libs/net.ts";
+import { useEffect, useRef } from "preact/hooks";
+import { render, VNode } from "preact";
+
+interface SUB {
+  name: string;
+  topics: TOP[];
+}
+interface TOP {
+  title: string;
+  sub_topics: SUBTOPIC[];
+}
+interface SUBTOPIC {
+  title: string;
+  questions: V[];
+}
+
+type Q = UntypedQuestion & ObjectiveQuestion;
+type V = Q & {
+  subject_id: number;
+  idx: number;
+  p_id: string;
+  p_title: string;
+  s_name: string;
+  s_idx: number;
+  topic_id: number;
+  t_title: string;
+  t_idx: number;
+  sub_topic_id: number;
+  sub_title: string;
+  sub_idx: number;
+};
 
 type T = ISubject & { id: string };
 export default function SubjectList(
@@ -20,6 +52,8 @@ export default function SubjectList(
   const mutated_list = useSignal<T[]>([]);
   const is_marked_for_delete_mutated = useSignal<boolean>(false);
   const deletion_list = useSignal<T[]>([]);
+
+  const doc = useSignal<SUB[]>([]);
 
   const onSelectForDelete = (
     ev: JSX.TargetedEvent<HTMLInputElement>,
@@ -41,8 +75,20 @@ export default function SubjectList(
     is_marked_for_delete_mutated.value = deletion_list.value.length > 0;
   };
 
-  const _print = (id: string) => {
+  const _print = async () => {
+    const result = await Net.instance.getReq<Api<SUB[]>>(
+      "/api/publish/print?id=" + id,
+    );
+    if (result.Err || result.Ok?.status == "failed") {
+      return;
+    }
+
+    doc.value = result.Ok!.data!;
   };
+
+  // useEffect(() => {
+  //   _print();
+  // }, []);
 
   return (
     <div class={"space-y-3"}>
@@ -126,7 +172,7 @@ export default function SubjectList(
       />
       <div>
         <LinkButton
-          text={`Practice ${
+          text={`Walkthrough ${
             is_marked_for_delete_mutated.value
               ? "( " + (deletion_list.value as T[]).length + " )"
               : "All"
@@ -181,15 +227,80 @@ export default function SubjectList(
             />
           </svg>
         }
-        onClick={() => _print(id)}
+        onClick={() => _print()}
       />
+      <DownloadDocx doc={doc} id={id} />
     </div>
   );
 }
 
-const DownloadDocx = () => {
+const DownloadDocx = ({ doc, id }: { doc: Signal<SUB[]>; id: string }) => {
+  const ref = useRef<HTMLIFrameElement>(null);
+  const sections: VNode[] = [];
+  for (const sub of doc.value) {
+    sections.push(<p>{sub.name}</p>);
+    for (const topic of sub.topics) {
+      sections.push(<p>{topic.title}</p>);
+      for (const sub_topic of topic.sub_topics) {
+        sections.push(<p>{sub_topic.title}</p>);
+        const qsec: VNode[] = [];
+        for (const qx of sub_topic.questions) {
+          qsec.push(
+            <p>
+              <p dangerouslySetInnerHTML={{ __html: qx.question }} />
+              <p dangerouslySetInnerHTML={{ __html: qx.option_1 }} />
+              <p dangerouslySetInnerHTML={{ __html: qx.option_2 }} />
+              <p dangerouslySetInnerHTML={{ __html: qx.option_3 }} />
+              <p dangerouslySetInnerHTML={{ __html: qx.option_4 }} />
+            </p>,
+          );
+        }
+        sections.push(
+          <div>
+            {qsec}
+          </div>,
+        );
+      }
+    }
+    sections.push(<div class={"page-break"} />);
+  }
+
+  useEffect(() => {
+    if (typeof globalThis == "undefined" || !ref.current) return;
+    ref.current!.style.zIndex = "9999999999";
+    ref.current!.style.position = "fixed";
+    // ref.current!.style.left = "0";
+    // ref.current!.style.right = "0";
+    // ref.current!.style.bottom = "0";
+    ref.current!.style.top = "-999999px";
+    ref.current!.style.height = "297mm";
+    ref.current!.style.width = "210mm";
+    // ref.current!.style.marginLeft = "auto";
+    // ref.current!.style.marginRight = "auto";
+    ref.current!.style.backgroundColor = "white";
+
+    ref.current!.contentDocument!.getElementsByTagName("body")[0].append(
+      ...sections.map((a) => {
+        const container = document.createElement("div");
+        render(a, container);
+        console.log(a);
+        return container.firstChild!;
+      }),
+    );
+
+    setTimeout(() => {
+      console.log(ref.current!.contentDocument!.getElementsByTagName("body"));
+      const html = ref.current!.contentDocument!.getElementsByTagName("body")[0]
+        .innerHTML;
+      Net.instance.postReq("/api/publish/print?id=" + id, {
+        html,
+      });
+    }, 2000);
+  }, [sections]);
+
   return (
-    <div>
-    </div>
+    <Fragment>
+      {doc.value.length > 0 && <iframe ref={ref} />}
+    </Fragment>
   );
 };
