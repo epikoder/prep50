@@ -1,4 +1,4 @@
-FROM denoland/deno:1.38.3
+FROM denoland/deno:1.43.5
 
 ARG GIT_REVISION
 ARG DATABASE_HOST=${DATABASE_HOST}
