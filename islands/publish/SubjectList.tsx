@@ -175,7 +175,7 @@ export default function SubjectList(
           text={`Walkthrough ${
             is_marked_for_delete_mutated.value
               ? "( " + (deletion_list.value as T[]).length + " )"
-              : "All"
+              : ""
           }`}
           icon={
             <svg

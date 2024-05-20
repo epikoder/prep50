@@ -106,8 +106,13 @@ const View = (
     on_prev?: VoidFunction;
   },
 ) => {
-  const on_answer = () => {};
+  const is_answer_visible = useSignal(false);
+  const on_answer = () => is_answer_visible.value = !is_answer_visible.value;
 
+  const on_navigate = (cb?: VoidFunction) => {
+    if (is_answer_visible.value) is_answer_visible.value = false;
+    if (cb) cb();
+  };
   return (
     <div>
       <div>
@@ -138,16 +143,47 @@ const View = (
         question={question}
         style={"p-4 rounded space-x-2 flex w-full"}
       />
-      <div>
+      <div
+        hidden={!is_answer_visible.value}
+        class={"max-h-[50v] overflow-y-scroll space-y-4"}
+      >
         <div
-          dangerouslySetInnerHTML={{ __html: answer(question.short_answer!) }}
-        />
+          class={"text-center flex items-center space-x-2"}
+        >
+          <span>
+            {"Correct Answer = "}
+          </span>
+          <span
+            dangerouslySetInnerHTML={{ __html: answer(question.short_answer!) }}
+          />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-6 h-6 p-1 text-[#46b5ff]"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+            />
+          </svg>
+        </div>
         {question.answer_details && (
-          <div dangerouslySetInnerHTML={{ __html: question.answer_details }} />
+          <div>
+            <div class={"font-semibold text-center"}>
+              {"Explanation"}
+            </div>
+            <div
+              dangerouslySetInnerHTML={{ __html: question.answer_details }}
+            />
+          </div>
         )}
       </div>
       <div class={"flex justify-between px-4 py-8"}>
-        <button onClick={on_prev} class={"flex space-x-4"}>
+        <button onClick={() => on_navigate(on_prev)} class={"flex space-x-4"}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -168,12 +204,14 @@ const View = (
         </button>
 
         <button onClick={on_answer} class={"flex space-x-4"}>
-          <div>
-            {"Show Answer"}
+          <div
+            class={"w-32 rounded-lg py-2 text-white bg-[#46b5ff] hover:bg-opacity-75"}
+          >
+            {is_answer_visible.value ? "Hide Answeer" : "Show Answer"}
           </div>
         </button>
 
-        <button onClick={on_next} class={"flex space-x-4"}>
+        <button onClick={() => on_navigate(on_next)} class={"flex space-x-4"}>
           <div>
             {"Next"}
           </div>

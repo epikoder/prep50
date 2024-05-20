@@ -1,4 +1,4 @@
-import { Signal } from "@preact/signals";
+import { Signal, useSignal } from "@preact/signals";
 import { JSX } from "preact/jsx-runtime";
 import { assets } from "../libs/helper.ts";
 
@@ -10,6 +10,7 @@ const QuestionView = (
     style?: JSX.HTMLAttributes["class"];
   },
 ) => {
+  const is_passage_expanded = useSignal(false);
   const onChecked = (ev: JSX.TargetedEvent<HTMLInputElement>) => {
     if (!controller) return;
     const checked = ev.currentTarget.checked;
@@ -32,6 +33,20 @@ const QuestionView = (
         </div>
       )}
       <div class={"space-y-3"}>
+        {question.passage && (
+          <div
+            class={`cursor-pointer transition-all duration-200 ${
+              is_passage_expanded.value
+                ? ""
+                : "line-clamp-4 overflow-ellipsis hover:line-clamp-none"
+            }`}
+            dangerouslySetInnerHTML={{
+              __html: question.passage,
+            }}
+            onClick={() =>
+              is_passage_expanded.value = !is_passage_expanded.value}
+          />
+        )}
         <div dangerouslySetInnerHTML={{ __html: question.question }} />
         {question.question_image && (
           <img src={assets(question.question_image)} />
