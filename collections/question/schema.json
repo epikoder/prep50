@@ -72,6 +72,11 @@
       "displayName": "Question Details"
     },
     {
+      "field": "passage",
+      "type": "text",
+      "displayName": "Passage"
+    },
+    {
       "field": "question_image",
       "type": "image",
       "displayName": "Question Image"
