@@ -57,9 +57,11 @@ async function parseAuth(req: Request, ctx: FreshApp) {
   if (__user) {
     __user = __user.split(".").length > 1 ? __user.split(".")[0] : __user;
     try {
-      ctx.state.user = <User>JSON.parse(
+      const u = <User>JSON.parse(
         new TextDecoder().decode(decodeBase64(__user)) || "{}",
       );
+      if (!await ctx.state.context.get_user(u.email)) throw new Error("unauthorized");
+      ctx.state.user = u;
     } catch (error) {
       console.error(error);
       __user = false;
@@ -70,15 +72,24 @@ async function parseAuth(req: Request, ctx: FreshApp) {
     console.log(__user, "DELETING ...........");
     deleteCookie(resp.headers, AUTH_COOKIE_KEY);
   }
-  if (ctx.state.user) {
-    if (uri.pathname == "/login" && ctx.destination == "route") {
+  if (!ctx.state.user) {
+    if (uri.pathname != "/login" && ctx.destination == "route") {
       return new Response(null, {
         status: 303,
         headers: {
-          location: "/",
+          location: "/login",
         },
       });
     }
+    return resp;
+  }
+  if (uri.pathname == "/login" && ctx.destination == "route") {
+    return new Response(null, {
+      status: 303,
+      headers: {
+        location: "/",
+      },
+    });
   }
   return resp;
 }

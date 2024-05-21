@@ -72,6 +72,27 @@ export class AppContext {
     return user;
   }
 
+  public async get_user(username: string): Promise<User | undefined> {
+    const cfg = authConfig();
+    const query = (Dex({ client: "mysql2" }) as Knex.QueryBuilder).table(
+      cfg.table,
+    ).select(
+      "*",
+    ).where(cfg.column, username).where(cfg.isAdmin, 1);
+
+    const result = await this._client.execute(
+      query.toQuery(),
+      [
+        username,
+      ],
+    );
+    const user = result.rows?.at(0) as User | undefined;
+    if (!user) {
+      return;
+    }
+    return user;
+  }
+
   private static async loadSchema() {
     const schema: Map<string, Schema> = new Map();
     for await (const m of Deno.readDir(COLLECTION_DIR)) {
