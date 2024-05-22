@@ -8,9 +8,11 @@ export const handler: Handlers = {
   async GET(_, ctx) {
     const conn = await Builder.getConnection();
 
+    const id = ctx.params.id;
     return ctx.render(
       await conn.query(
-        `SELECT * FROM subjects`,
+        `SELECT * FROM subjects WHERE id NOT IN (SELECT subject_id FROM publish_subjects WHERE id = ?)`,
+        [id],
       ),
     );
   },

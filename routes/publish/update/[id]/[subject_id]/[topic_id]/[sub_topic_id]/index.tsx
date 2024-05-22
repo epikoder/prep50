@@ -11,9 +11,15 @@ export const handler: Handlers = {
       await conn.query(
         `SELECT q.* FROM questions AS q
         LEFT JOIN objective_questions AS oq ON oq.question_id = q.id
-        WHERE oq.objective_id = ? AND q.question_type_id = 1
+        WHERE oq.objective_id = ? AND q.question_type_id = 1 AND q.id NOT IN (SELECT question_id FROM publish_questions WHERE id = ? AND subject_id = ? AND topic_id = ?)
         `,
-        [sub_topic_id],
+        [
+          sub_topic_id,
+          ctx.params.id,
+          ctx.params.subject_id,
+          ctx.params.topic_id,
+          ctx.params.sub_topic_id,
+        ],
       ),
     );
   },

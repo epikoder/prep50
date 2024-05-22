@@ -12,9 +12,9 @@ export const handler: Handlers = {
         `SELECT o.id, o.title FROM objectives AS o 
         LEFT JOIN topic_objectives AS _to ON _to.objective_id = o.id 
         LEFT JOIN topics AS t ON t.id = _to.topic_id
-        WHERE t.id = ?
+        WHERE t.id = ? AND o.id NOT IN (SELECT sub_topic_id FROM publish_sub_topics WHERE id = ? AND subject_id = ? AND topic_id = ?)
         `,
-        [topic_id],
+        [topic_id, ctx.params.id, ctx.params.subject_id, ctx.params.topic_id],
       ),
     );
   },

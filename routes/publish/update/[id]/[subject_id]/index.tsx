@@ -10,8 +10,8 @@ export const handler: Handlers = {
 
     return ctx.render(
       await conn.query(
-        `SELECT * FROM topics WHERE subject_id = ?`,
-        [subject_id],
+        `SELECT * FROM topics WHERE subject_id = ? AND id NOT IN (SELECT topic_id FROM publish_topics WHERE id = ? AND subject_id = ?)`,
+        [subject_id, ctx.params.id, subject_id],
       ),
     );
   },
