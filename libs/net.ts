@@ -1,14 +1,22 @@
 
 type _ = number | string | boolean
 type Query = Record<string, _ | _[]>
+
 export default class Net {
   private static __instance: Net | undefined = undefined;
   private baseUrl: string = "";
 
+  seturl(url: string) {
+    this.baseUrl = url;
+  }
+
+  get url(): string {
+    return this.baseUrl;
+  }
+
   static get instance(): Net {
     if (Net.__instance == undefined) {
       Net.__instance = new Net();
-      Net.__instance.baseUrl = "127.0.0.1:8000/";
     }
     return this.__instance!;
   }

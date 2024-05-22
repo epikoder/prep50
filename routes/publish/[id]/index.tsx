@@ -32,6 +32,7 @@ export default function _(
         <SubjectList
           items={data.subjects.map((v) => ({ ...v, id: data.id }))}
           id={data.id}
+          title={data.title}
         />
       </div>
     </div>

@@ -33,6 +33,11 @@ const QuestionView = (
         </div>
       )}
       <div class={"space-y-3"}>
+        {question.question_details && (
+          <div
+            dangerouslySetInnerHTML={{ __html: question.question_details }}
+          />
+        )}
         {question.passage && (
           <div
             class={`cursor-pointer transition-all duration-200 ${

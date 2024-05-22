@@ -6,6 +6,7 @@ import authConfig from "./config/auth.ts";
 import Dex from "https://deno.land/x/dex@1.0.2/mod.ts";
 import { Knex } from "knex";
 import Hash from "./libs/hash.ts";
+import Net from "./libs/net.ts";
 
 export class AppContext {
   private static context: AppContext;
@@ -32,6 +33,7 @@ export class AppContext {
       ...databaseConfig(),
       debug: Deno.env.get("NODE_ENV") === "development",
     })!;
+    Net.instance.seturl(Deno.env.get("HOST_ADDR") ?? "http://127.0.0.1:8000/");
     AppContext.context = new AppContext({ schema, config, client });
     console.log("App context initialized successfully!");
   }
