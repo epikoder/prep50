@@ -34,8 +34,8 @@ export default function _({ Component, url }: PageProps) {
                 </svg>
               </a>
             </div>
-            <div class={"text-sm uppercase pl-8"}>
-              {"Prep50"}{" "}
+            <div class={"text-sm uppercase lg:pl-8"}>
+              {"Prep50"}
               {url.pathname.includes("/walkthrough/") && (
                 <span>{" Walkthrough"}</span>
               )}
@@ -59,7 +59,7 @@ export default function _({ Component, url }: PageProps) {
             </a>
           </div>
         </div>
-        <div class={"pt-20 w-full"}>
+        <div class={"pt-20 w-full px-2"}>
           <Component />
         </div>
       </div>
