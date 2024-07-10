@@ -25,3 +25,7 @@ table tr:last-child td {
 table p {
     display: inline-block;
 }
+
+.tox .tox-dialog-wrap__backdrop--opaque,.tox .tox-dialog-wrap__backdrop {
+  background: #00000035 !important;
+}

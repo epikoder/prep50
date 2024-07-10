@@ -12,42 +12,18 @@ export default function Input({ attribute, data }: InputProps) {
       const sc = document.createElement("script");
       sc.innerHTML = `
       (function () {
-        const txtarea = document.getElementById('mce-${attribute.field}')
+      const txtarea = document.getElementById('mce-${attribute.field}')
         const options = {
           selector: 'textarea#mce-${attribute.field}',
+          placeholder: 'Type here...',
           height: 300,
           resize: true,
           menubar: false,
           statusbar: false,
-          plugins: [
-            "advlist",
-            "autolink",
-            "lists",
-            "link",
-            "charmap",
-            "preview",
-            "anchor",
-            "searchreplace",
-            "visualblocks",
-            "code",
-            "fullscreen",
-            "insertdatetime",
-            "media",
-            "table",
-            "code",
-            "help",
-            "wordcount",
-            "autoresize",
-          ],
-          toolbar: 'undo redo | formatselect | ' +
-            'bold italic backcolor | alignleft aligncenter ' +
-            'alignright alignjustify | bullist numlist outdent indent | ' +
-            'removeformat',
+          plugins: 'anchor autolink charmap codesample emoticons link lists searchreplace table visualblocks wordcount linkchecker',
+          toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
           content_style:
             'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }',
-          content_css: [
-            '/tiny_mce.css'
-          ],
           forced_root_block : "aaa",
           newline_behaviour: "linebreak",
           setup: (editor) => {
@@ -105,8 +81,6 @@ export default function Input({ attribute, data }: InputProps) {
           <textarea
             id={"mce-" + attribute.field}
             name={attribute.field}
-            placeholder={(attribute.displayName || attribute.field)
-              .toLowerCase()}
             class={"placeholder:lowercase dark:bg-white rounded-md px-3 py-2 text-sm text-gray-800 mce-styling"}
             onChange={(e) => {
               console.log(e);
