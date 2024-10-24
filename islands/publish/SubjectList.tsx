@@ -4,8 +4,7 @@ import Draggable from "../../components/Draggable.tsx";
 import List from "../../components/List.tsx";
 import LinkButton from "../../components/LinkButton.tsx";
 import PublishSaveButton from "../../components/PublishSaveButton.tsx";
-import { showFailed, showSuccess } from "../../libs/toast.ts";
-import {} from "npm:docx";
+import { showFailed } from "../../libs/toast.ts";
 import PublishDeleteButton from "../../components/PublishDeleteButton.tsx";
 import PillButton from "../../components/PillButton.tsx";
 import Net from "../../libs/net.ts";
@@ -158,11 +157,10 @@ export default function SubjectList(
       />
       <div>
         <LinkButton
-          text={`Walkthrough ${
-            is_marked_for_delete_mutated.value
-              ? "( " + (deletion_list.value as T[]).length + " )"
-              : ""
-          }`}
+          text={`Walkthrough ${is_marked_for_delete_mutated.value
+            ? "( " + (deletion_list.value as T[]).length + " )"
+            : ""
+            }`}
           icon={
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -257,6 +255,10 @@ const DownloadDocx = ({ id, title }: { id: string; title: string }) => {
   };
 
   const generate_docx = (sections: VNode[]) => {
+    if (!ref.current) {
+      alert("Noting to print")
+      return is_loading.value = false
+    };
     ref.current!.style.zIndex = "9999999999";
     ref.current!.style.position = "fixed";
     ref.current!.style.top = "-999999px";
@@ -423,10 +425,10 @@ const DownloadDocx = ({ id, title }: { id: string; title: string }) => {
                     value={a.short_answer == "option_1"
                       ? "A"
                       : a.short_answer == "option_2"
-                      ? "B"
-                      : a.short_answer == "option_3"
-                      ? "C"
-                      : "D"}
+                        ? "B"
+                        : a.short_answer == "option_3"
+                          ? "C"
+                          : "D"}
                   />&nbsp;&nbsp;
                 </Fragment>
               ))}

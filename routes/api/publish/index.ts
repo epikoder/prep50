@@ -14,48 +14,68 @@ export const handler: Handlers<any, State> = {
       FROM publish_subjects
       GROUP BY id
     ) ps ON p.id = ps.id;
-    `) as IPublish[]
-    return new Response(JSON.stringify({ status: 'success', data: r } as Api));
+    `) ?? [] as IPublish[];
+    return new Response(JSON.stringify({ status: "success", data: r } as Api));
   },
 
   async POST(req, _) {
     const id = crypto.randomUUID();
-    const body = (await req.json()) as Record<string, string>
-    if (!body.subject || !body.title) return new Response(JSON.stringify({
-      status: 'failed',
-      $meta: {
-        message: 'Please fill the form correctly'
-      }
-    }),)
-    const slug = (body.title + '-' + cryptoRandomString({ length: 12 })).replaceAll(' ', '-').toLowerCase()
-    try {
-      await (await Builder.getConnection()).query("INSERT INTO publishes(id,title,slug) VALUES (?, ?, ?)", [id, body.title, slug])
-      await (await Builder.getConnection()).query("INSERT INTO publish_subjects(id,subject_id,idx) VALUES (?, ?, ?)", [id, body.subject, 1])
+    const body = (await req.json()) as Record<string, string>;
+    if (!body.subject || !body.title) {
       return new Response(JSON.stringify({
-        status: 'success',
-        data: { id }
+        status: "failed",
+        $meta: {
+          message: "Please fill the form correctly",
+        },
+      }));
+    }
+    const slug = (body.title + "-" + cryptoRandomString({ length: 12 }))
+      .replaceAll(" ", "-").toLowerCase();
+    try {
+      await (await Builder.getConnection()).query(
+        Builder.instance.builder.table("publishes").insert({
+          id,
+          title: body.title,
+          slug,
+        }).toQuery(),
+      );
+      await (await Builder.getConnection()).query(
+        Builder.instance.builder.table("publish_subjects").insert({
+          id,
+          subject_id: body.subject,
+          idx: 1,
+        }).toQuery(),
+      );
+      return new Response(JSON.stringify({
+        status: "success",
+        data: { id },
       } as Api));
     } catch (error) {
-      console.log({ error })
+      console.log({ error });
       return new Response(JSON.stringify({
-        status: 'failed',
-        $meta: { error: 'internal server error' }
+        status: "failed",
+        $meta: { error: "internal server error" },
       } as Api));
     }
   },
 
   async PUT(req, _) {
-    const body = await req.json() as UpdateRequest<string>
+    const body = await req.json() as UpdateRequest<string>;
     const conn = await Builder.getConnection();
     switch (body.action) {
-      case 'delete': {
-        await (conn).query("DELETE FROM publishes WHERE id = ?", [body.data]);
+      case "delete": {
+        await conn.query(
+          Builder.instance.builder.table("publishes").delete().where(
+            "id",
+            body.data,
+          ).toQuery(),
+        );
         break;
       }
     }
 
     return new Response(JSON.stringify({
-      status: 'success',
-    } as Api))
+      status: "success",
+    } as Api));
   },
 };

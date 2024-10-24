@@ -17,7 +17,7 @@ export async function handler(req: Request, ctx: FreshApp) {
   try {
     const page = parseInt(ctx.state.query.get("current_page")!);
     ctx.state.query.delete("current_page");
-    const builder = Builder.instance();
+    const builder = Builder.instance;
 
     const query: Record<string, string> = {};
     for (const [key, value] of ctx.state.query.entries()) {

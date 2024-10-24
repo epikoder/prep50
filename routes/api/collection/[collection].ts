@@ -51,7 +51,7 @@ export const handler: Handlers<any, State> = {
       q[`${schema.table}.${f}`] = { operator: "LIKE", value: searchTokens };
     }
 
-    const { data } = await Builder.instance().getAll(schema, q, false, 1, 500);
+    const { data } = await Builder.instance.getAll(schema, q, false, 1, 500);
     return new Response(JSON.stringify({ data, schema }), {
       headers: {
         "content-type": "application/json",
@@ -73,7 +73,7 @@ export const handler: Handlers<any, State> = {
     const id = ctx.state.query.get("id");
     if (!id) return new Response("{}", { status: 400 });
 
-    await Builder.instance().delete(schema, id);
+    await Builder.instance.delete(schema, id);
     return new Response(JSON.stringify(null), {
       headers: {
         "content-type": "application/json",

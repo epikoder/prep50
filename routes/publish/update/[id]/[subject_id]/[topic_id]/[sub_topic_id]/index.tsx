@@ -9,10 +9,19 @@ export const handler: Handlers = {
     const conn = await Builder.getConnection();
     return ctx.render(
       await conn.query(
-        `SELECT q.* FROM questions AS q
-        LEFT JOIN objective_questions AS oq ON oq.question_id = q.id
-        WHERE oq.objective_id = ? AND q.question_type_id = 1 AND q.id NOT IN (SELECT question_id FROM publish_questions WHERE id = ? AND subject_id = ? AND topic_id = ?)
-        `,
+        `SELECT q.* 
+FROM questions AS q
+LEFT JOIN objective_questions AS oq ON oq.question_id = q.id
+WHERE oq.objective_id = $1 
+AND q.question_type_id = '1'
+AND q.id NOT IN (
+  SELECT question_id 
+  FROM publish_questions 
+  WHERE id = $2 
+  AND subject_id = $3 
+  AND topic_id = $4
+);
+`,
         [
           sub_topic_id,
           ctx.params.id,
@@ -56,8 +65,7 @@ export const handler: Handlers = {
       let values = "VALUES";
       for (let i = 0; i < idx.length; i++) {
         values = values.concat(
-          `('${id}', ${parseInt(subject_id)}, ${parseInt(topic_id)}, ${
-            parseInt(sub_topic_id)
+          `('${id}', ${parseInt(subject_id)}, ${parseInt(topic_id)}, ${parseInt(sub_topic_id)
           }, ${parseInt(idx[i])}, ${r[0]._count + 1 + i})`,
           (i == idx.length - 1) ? "" : ",",
         );

@@ -1,12 +1,12 @@
 import { COLLECTION_DIR, CONFIG, SCHEMA } from "./libs/constants.ts";
 import Builder from "./libs/builder.ts";
 import databaseConfig from "./config/database.ts";
-import { Client } from "https://deno.land/x/mysql@v2.12.1/mod.ts";
 import authConfig from "./config/auth.ts";
 import Dex from "https://deno.land/x/dex@1.0.2/mod.ts";
 import { Knex } from "knex";
 import Hash from "./libs/hash.ts";
 import Net from "./libs/net.ts";
+import Client from "./libs/dbclient.ts";
 
 export class AppContext {
   private static context: AppContext;
@@ -55,17 +55,16 @@ export class AppContext {
     { username, password }: { username?: string; password?: string },
   ): Promise<User | undefined> {
     const cfg = authConfig();
-    const query = (Dex({ client: "mysql2" }) as Knex.QueryBuilder).table(
-      cfg.table,
-    ).select(
-      "*",
-    ).where(cfg.column, username).where(cfg.isAdmin, 1);
+    const query =
+      (Dex({ client: Deno.env.get("DATABASE_CLIENT")! }) as Knex.QueryBuilder)
+        .table(
+          cfg.table,
+        ).select(
+          "*",
+        ).where(cfg.column, username).where(cfg.isAdmin, true);
 
     const result = await this._client.execute(
       query.toQuery(),
-      [
-        username,
-      ],
     );
     const user = result.rows?.at(0) as User | undefined;
     if (!user || !Hash.checkHash(password, user[cfg.password])) {
@@ -76,17 +75,16 @@ export class AppContext {
 
   public async get_user(username: string): Promise<User | undefined> {
     const cfg = authConfig();
-    const query = (Dex({ client: "mysql2" }) as Knex.QueryBuilder).table(
-      cfg.table,
-    ).select(
-      "*",
-    ).where(cfg.column, username).where(cfg.isAdmin, 1);
+    const query =
+      (Dex({ client: Deno.env.get("DATABASE_CLIENT")! }) as Knex.QueryBuilder)
+        .table(
+          cfg.table,
+        ).select(
+          "*",
+        ).where(cfg.column, username).where(cfg.isAdmin, true);
 
     const result = await this._client.execute(
       query.toQuery(),
-      [
-        username,
-      ],
     );
     const user = result.rows?.at(0) as User | undefined;
     if (!user) {

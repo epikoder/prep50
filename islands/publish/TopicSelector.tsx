@@ -1,4 +1,4 @@
-import { Selector } from "../../components/Select.tsx";
+import { Selector } from "../Select.tsx";
 import { Signal } from "@preact/signals";
 import { Fragment } from "preact/jsx-runtime";
 

@@ -1,3 +1,4 @@
+import { IS_BROWSER } from "$fresh/runtime.ts";
 import { VNode } from "preact";
 import { createRef } from "preact";
 import { Component } from "preact";
@@ -33,6 +34,7 @@ export class Selector<T>
 
   constructor() {
     super();
+    console.log("PROPS", IS_BROWSER, this.props)
     this.checkMatch = this.checkMatch.bind(this);
     this.closeTooltip = this.closeTooltip.bind(this);
     this.onClickOutside = this.onClickOutside.bind(this);

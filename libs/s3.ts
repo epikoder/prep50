@@ -43,6 +43,7 @@ export default async function uploadObject(
 
   try {
     const data = <PutObjectCommandOutput> (await s3Client().send(cmd));
+    console.log("Upload successful", data.$metadata.requestId)
     return data;
   } catch (err) {
     console.log(generateUploadFileParam);

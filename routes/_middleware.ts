@@ -36,67 +36,72 @@ export const handler = [
 //// AUTH
 const AUTH_COOKIE_KEY = "X-SESSION";
 async function parseAuth(req: Request, ctx: FreshApp) {
-  let __user = await verifySignedCookie(
-    req.headers,
-    AUTH_COOKIE_KEY,
-    Deno.env.get("COOKIES_SECRET")!,
-  );
-  const uri = new URL(req.url);
-  if (
-    !__user && !AllowGuest.includes(uri.pathname) &&
-    ctx.destination === "route"
-  ) {
-    return new Response(null, {
-      status: 307,
-      headers: {
-        location: "/login",
-      },
-    });
-  }
-
-  if (__user) {
-    __user = __user.split(".").length > 1 ? __user.split(".")[0] : __user;
-    try {
-      const u = <User>JSON.parse(
-        new TextDecoder().decode(decodeBase64(__user)) || "{}",
-      );
-      if (!await ctx.state.context.get_user(u.email)) throw new Error("unauthorized");
-      ctx.state.user = u;
-    } catch (error) {
-      console.error(error);
-      __user = false;
-    }
-  }
-  const resp = await ctx.next();
-  if (!__user) {
-    console.log(__user, "DELETING ...........");
-    deleteCookie(resp.headers, AUTH_COOKIE_KEY);
-  }
-  if (!ctx.state.user) {
-    if (uri.pathname != "/login" && ctx.destination == "route") {
+  if (ctx.destination == "route") {
+    let __user = await verifySignedCookie(
+      req.headers,
+      AUTH_COOKIE_KEY,
+      Deno.env.get("COOKIES_SECRET")!,
+    );
+    const uri = new URL(req.url);
+    if (
+      !__user && !AllowGuest.includes(uri.pathname)
+    ) {
       return new Response(null, {
-        status: 303,
+        status: 307,
         headers: {
           location: "/login",
         },
       });
     }
+
+    if (__user) {
+      __user = __user.split(".").length > 1 ? __user.split(".")[0] : __user;
+      try {
+        const u = <User> JSON.parse(
+          new TextDecoder().decode(decodeBase64(__user)) || "{}",
+        );
+        if (!await ctx.state.context.get_user(u.email)) {
+          throw new Error("unauthorized");
+        }
+        ctx.state.user = u;
+      } catch (error) {
+        console.error(error);
+        __user = false;
+      }
+    }
+    const resp = await ctx.next();
+    if (!__user) {
+      console.log(__user, "DELETING ...........");
+      deleteCookie(resp.headers, AUTH_COOKIE_KEY);
+    }
+    if (!ctx.state.user) {
+      if (uri.pathname != "/login" && ctx.destination == "route") {
+        return new Response(null, {
+          status: 303,
+          headers: {
+            location: "/login",
+          },
+        });
+      }
+      return resp;
+    }
+    if (uri.pathname == "/login" && ctx.destination == "route") {
+      return new Response(null, {
+        status: 303,
+        headers: {
+          location: "/",
+        },
+      });
+    }
     return resp;
   }
-  if (uri.pathname == "/login" && ctx.destination == "route") {
-    return new Response(null, {
-      status: 303,
-      headers: {
-        location: "/",
-      },
-    });
-  }
-  return resp;
+
+  return ctx.next();
 }
 
 async function setAuthCookie(_: Request, ctx: FreshApp) {
   const resp = await ctx.next();
-  if (ctx.state.user) {
+  if (ctx.state.user && ctx.destination == "route") {
     const b64 = encodeBase64(JSON.stringify(ctx.state.user));
     const { cookie } = await createSignedCookie(
       AUTH_COOKIE_KEY,
@@ -162,11 +167,11 @@ async function parseQuery(req: Request, ctx: FreshApp) {
     const u = new URL(req.url);
     for (const [k, v] of u.searchParams.entries()) {
       if (v) {
-        const existing_value = m.get(k)
+        const existing_value = m.get(k);
         if (!existing_value) {
           m.set(k, v);
         } else {
-          m.set(k, existing_value.concat("," + v))
+          m.set(k, existing_value.concat("," + v));
         }
       }
     }

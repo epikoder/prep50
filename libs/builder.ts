@@ -1,10 +1,9 @@
 // deno-lint-ignore-file
 import databaseConfig from "../config/database.ts";
 import { COLLECTION_DIR, SCHEMA } from "./constants.ts";
-import { Client, Connection } from "https://deno.land/x/mysql@v2.12.1/mod.ts";
-
 import { Knex } from "knex";
 import Dex from "https://deno.land/x/dex@1.0.2/mod.ts";
+import Client from "./dbclient.ts";
 
 type TupleString3 = [string, string, string];
 type QueryRelation = Omit<Attributes & RelationAttribute, "target"> & {
@@ -13,19 +12,10 @@ type QueryRelation = Omit<Attributes & RelationAttribute, "target"> & {
 };
 
 export default class Builder {
-  private static builder: Builder;
+  private static __instance: Builder;
   private readonly _db: Client;
   private _paginateLimit = 100;
   private readonly _debug: boolean;
-  private _db_config: {
-    poolSize: number;
-    username: string;
-    password: string;
-    db: string;
-    hostname: string;
-    port: number;
-    acquireConnectionTimeout: number;
-  };
   constructor(
     { debug, client, config }: {
       debug?: boolean;
@@ -43,20 +33,18 @@ export default class Builder {
   ) {
     this._debug = !!debug;
     this._db = client;
-    this._db_config = config;
   }
 
   public static async init(
     config: ReturnType<typeof databaseConfig> & { debug?: boolean },
   ): Promise<Client> {
-    if (this.builder) return this.builder._db;
+    if (this.__instance) return this.__instance._db;
     const { debug, ...c } = config;
-    const client = await new Client().connect({
+    const client = await new Client({
       ...c,
       poolSize: 2,
     });
-    await client.execute(`SELECT uuid()`);
-    Builder.builder = new Builder({
+    Builder.__instance = new Builder({
       debug,
       client,
       config: {
@@ -67,27 +55,13 @@ export default class Builder {
     return client;
   }
 
-  public static async getConnection(): Promise<Connection> {
-    return (await Builder.builder._db.useConnection(async (conn) => {
-      try {
-        await conn.execute(`SELECT uuid()`)
-      } catch (error) {
-        await conn.connect();
-      }
-      return Promise.resolve(conn)
-    }))
+  public static async getConnection(): Promise<Client> {
+    return Promise.resolve(Builder.__instance._db);
   }
 
-  public static async end() {
-    await this.builder._db.close();
-  }
-
-  public static instance() {
-    if (!this.builder) throw new Error("Builder not initialized");
-    this.builder._db.execute(`SELECT uuid()`).catch(() => {
-      console.info("INFO", "reconnecting....");
-    });
-    return this.builder;
+  public static get instance() {
+    if (!this.__instance) throw new Error("Builder not initialized");
+    return this.__instance;
   }
 
   private _log(...a: Parameters<Console["log"]>) {
@@ -96,12 +70,12 @@ export default class Builder {
     }
   }
 
-  private _builder(): Knex {
-    return Dex({ client: "mysql2" });
+  public get builder(): Knex {
+    return Dex({ client: Deno.env.get("DATABASE_CLIENT")! });
   }
 
   async count(schema: Schema) {
-    let query = this._builder().queryBuilder().table(schema.table).count("id");
+    let query = this.builder.queryBuilder().table(schema.table).count("id");
     this._log("Count --- ", query.toQuery());
     return await this._db.execute(query.toQuery());
   }
@@ -110,11 +84,11 @@ export default class Builder {
     schema: Schema,
     params: Record<string, any>,
   ): Promise<number> {
-    let query = this._builder().queryBuilder().table(schema.table);
+    let query = this.builder.queryBuilder().table(schema.table);
     query = query.insert(params);
     console.log("Create --- ", query.toSQL().sql, params);
+    query = query.returning(schema.uniqueId);
     const result = await this._db.execute(query.toQuery());
-    console.log(result);
     return result.lastInsertId!;
   }
 
@@ -122,7 +96,7 @@ export default class Builder {
     tableName: string,
     params: Record<string, any>,
   ): Promise<boolean> {
-    let query = this._builder().queryBuilder().table(tableName);
+    let query = this.builder.queryBuilder().table(tableName);
     query = query.insert(params);
     console.log("CreateRelation --- ", query.toSQL().sql);
     const result = await this._db.execute(query.toQuery());
@@ -134,18 +108,22 @@ export default class Builder {
     id: any,
     params: Record<string, any>,
   ): Promise<boolean> {
-    let query = this._builder().queryBuilder().table(schema.table);
-    let relations = this._relationBinding(schema);
-    query = this._selectRelation(query, schema, relations);
-    query = this._joinRelation(query, schema, relations);
-    query = this._polyJoinRelation(query, schema);
+    let query = this.builder.queryBuilder().table(schema.table);
     let mappedParams: Record<string, string> = {};
-    for (const [key, value] of Object.entries(params)) {
+    for (let [key, value] of Object.entries(params)) {
       if (key.includes(".")) {
-        mappedParams[key] = value;
+        key = key.split(".")[1];
+      }
+      const attr = schema.attributes.find((attr) => attr.field == key);
+      if (!attr) continue;
+      if (
+        attr.type == "relation" &&
+        (attr.relation.type != "oneToMany" ||
+          attr.relation.reference != "forward")
+      ) {
         continue;
       }
-      mappedParams[`${schema.table}.${key}`] = value;
+      mappedParams[key] = value;
     }
 
     this._log("Update", query.toQuery(), params);
@@ -153,7 +131,7 @@ export default class Builder {
       query
         .update(mappedParams)
         .where(`${schema.table}.${schema.uniqueId || "id"}`, id).toQuery(),
-      this._toArray(params),
+      this._toArray(mappedParams),
     );
     return (result.affectedRows || 0) > 0;
   }
@@ -162,7 +140,7 @@ export default class Builder {
     schema: Schema,
     params: Record<string, string>,
   ): Promise<DBResult | undefined> {
-    let query = this._builder().queryBuilder().table(schema.table);
+    let query = this.builder.queryBuilder().table(schema.table);
     let relations = this._relationBinding(schema);
     query = this._select(query, schema, true);
     query = this._selectRelation(query, schema, relations);
@@ -187,7 +165,7 @@ export default class Builder {
     currentPage?: number,
     perPage?: number,
   ) {
-    let query = this._builder().queryBuilder().table(schema.table);
+    let query = this.builder.queryBuilder().table(schema.table);
     let relations = this._relationBinding(schema);
     query = this._select(query, schema);
     query = this._selectRelation(query, schema, relations);
@@ -245,7 +223,7 @@ export default class Builder {
     schema: Schema,
     id: string | number,
   ): Promise<boolean> {
-    let query = this._builder().queryBuilder().table(schema.table);
+    let query = this.builder.queryBuilder().table(schema.table);
     query = query.where(schema.uniqueId || "id", id).delete();
     console.log("Delete --- ", query.toSQL().sql);
     const result = await this._db.execute(query.toQuery());
@@ -257,7 +235,7 @@ export default class Builder {
     tableName: string,
     params: Record<string, any>,
   ): Promise<boolean> {
-    let query = this._builder().queryBuilder().table(tableName);
+    let query = this.builder.queryBuilder().table(tableName);
     query = query.where(params).delete();
     console.log("DeleteRelation --- ", query.toSQL().sql);
     const result = await this._db.execute(query.toQuery());
@@ -281,12 +259,13 @@ export default class Builder {
     }
     for (const a of actions) {
       select = select.concat(
-        `${schema.table}.${schema.uniqueId || "id"} as ${a.displayName || a.field
+        `${schema.table}.${schema.uniqueId || "id"} as ${
+          a.displayName || a.field
         }`,
       );
     }
     this._log("_select", builder.toQuery());
-    return <T>builder.select(select);
+    return <T> builder.select(select);
   }
 
   private _selectRelation<T extends Knex.QueryBuilder>(
@@ -296,16 +275,18 @@ export default class Builder {
   ): T {
     for (const r of rel) {
       if (r.relation.type === "oneToMany") {
-        let field = `${r.relation.reference === "forward" ? r.target[0] : schema.table
-          }.${r.relation.reference === "forward"
+        let field = `${
+          r.relation.reference === "forward" ? r.target[0] : schema.table
+        }.${
+          r.relation.reference === "forward"
             ? r.relation.column || r.field
             : r.relation.column
-          } as ${r.displayName || r.field}`;
+        } as ${r.displayName || r.field}`;
         builder.select(field);
       }
     }
     this._log("_selectRelation", builder.toQuery());
-    return <T>builder;
+    return <T> builder;
   }
 
   private _joinRelation<T extends Knex.QueryBuilder>(
@@ -362,7 +343,8 @@ export default class Builder {
         t[1] = a.target.replace(":", ".");
         const target: QueryRelation["target"] = [
           ...(t as [string, string]),
-          `${schema.table}.${a.relation.reference == "backward" ? a.relation.column : a.field
+          `${schema.table}.${
+            a.relation.reference == "backward" ? a.relation.column : a.field
           }`,
         ];
         r = r.concat({ ...a, target });
@@ -381,17 +363,20 @@ export default class Builder {
 
       let field = "";
       if (attr.relation === "belongsTo" || attr.relation === "belongsToMany") {
-        field = `${attr.tableName}.${attr.column || attr.foreignKey || "id"}${attr.displayName ? " as " + attr.displayName : ""
-          }`;
+        field = `${attr.tableName}.${attr.column || attr.foreignKey || "id"}${
+          attr.displayName ? " as " + attr.displayName : ""
+        }`;
         select.set(field, attr);
         if (attr.pivot) {
-          const f = `${attr.pivot.table}.${attr.pivot.column || attr.pivot.key || "id"
-            }${attr.pivot.displayName ? " as " + attr.pivot.displayName : ""}`;
+          const f = `${attr.pivot.table}.${
+            attr.pivot.column || attr.pivot.key || "id"
+          }${attr.pivot.displayName ? " as " + attr.pivot.displayName : ""}`;
           builder.select(f);
         }
       } else {
-        field = `${schema.table}.${schema.uniqueId || "id"} AS ${attr.displayName || attr.field
-          }`;
+        field = `${schema.table}.${schema.uniqueId || "id"} AS ${
+          attr.displayName || attr.field
+        }`;
         // TODO :: HAS-
       }
 
@@ -483,7 +468,7 @@ export default class Builder {
     const limit = isFromStart ? perPage * currentPage : perPage;
 
     if (shouldFetchTotals) {
-      countQuery = this._builder().queryBuilder().table(schema.table)
+      countQuery = this.builder.queryBuilder().table(schema.table)
         .count("* as total")
         .from(query.clone().offset(0).clearOrder().as("count__query__"))
         .first()

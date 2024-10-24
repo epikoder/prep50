@@ -15,7 +15,7 @@ export const handler: Handlers<any, State> = {
 
                 const idx = body.data.map((v) => v.subject_id)
                 const v = body.data[0]
-                await (conn).query("DELETE FROM publish_subjects WHERE id = ? AND subject_id IN ?", [v.id, idx]);
+                await (conn).query("DELETE FROM publish_subjects WHERE id = $1 AND subject_id IN ($2)", [v.id, idx]);
                 break;
             }
             default:

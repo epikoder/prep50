@@ -5,7 +5,7 @@ import Builder from "../../../libs/builder.ts";
 import HTMLtoDOCX from "npm:html-to-docx";
 import { Buffer } from "https://deno.land/std@0.83.0/node/buffer.ts";
 
-type Q = UntypedQuestion & ObjectiveQuestion
+type Q = UntypedQuestion & ObjectiveQuestion;
 type T = Q & {
     subject_id: number;
     idx: number;
@@ -13,11 +13,11 @@ type T = Q & {
     p_title: string;
     s_name: string;
     s_idx: number;
-    topic_id: number
+    topic_id: number;
     t_title: string;
     t_details: string;
     t_idx: number;
-    sub_topic_id: number
+    sub_topic_id: number;
     sub_title: string;
     sub_details: string;
     sub_idx: number;
@@ -26,7 +26,7 @@ type T = Q & {
 // deno-lint-ignore no-explicit-any
 export const handler: Handlers<any, State> = {
     async GET(_, ctx) {
-        const id = ctx.state.query.get("id")
+        const id = ctx.state.query.get("id");
         const conn = await Builder.getConnection();
         const statement = `
             SELECT 
@@ -59,78 +59,86 @@ export const handler: Handlers<any, State> = {
             JOIN 
                 publishes AS p ON p.id = pq.id
             WHERE 
-                p.id = ?
+                p.id = $1
             ORDER BY 
                 s_idx, t_idx, sub_idx, idx;
             `;
         try {
-            const data = <T[]>await conn.query(statement, [id]);
-            // const doc = generate_docx(transform_data(data));
-
-            // // Used to export the file into a .docx file
-            // Packer.toBuffer(doc).then((buffer) => {
-            //     Deno.writeFileSync("My Document.docx", buffer);
-            // });
+            const data = <T[]> await conn.query(statement, [id]);
             return new Response(JSON.stringify({
-                status: 'success',
-                data: transform_data(data)
-            } as Api))
+                status: "success",
+                data: transform_data(data),
+            } as Api));
         } catch (error) {
-            console.error(error)
+            console.error(error);
             return new Response(JSON.stringify({
-                status: 'failed',
-            } as Api))
+                status: "failed",
+            } as Api));
         }
-
     },
 
     async POST(req, _) {
-        const h = (await req.json()).html
-        const buffer: Buffer = await HTMLtoDOCX(h, '', {
+        const h = (await req.json()).html;
+        const buffer: Buffer = await HTMLtoDOCX(h, "", {
             margins: {
                 top: 1000,
                 bottom: 1000,
                 left: 1250,
-                right: 1250
+                right: 1250,
             },
             fontSize: 15,
-        })
+        });
         return new Response(buffer.buffer, {
             headers: {
-                'content-type':'application/octet-stream'
-            }
-        })
-    }
-}
+                "content-type": "application/octet-stream",
+            },
+        });
+    },
+};
 interface SUB {
-    name: string,
-    topics: TOP[]
+    name: string;
+    topics: TOP[];
 }
 interface TOP {
-    title: string
-    details: string
-    sub_topics: SUBTOPIC[]
+    title: string;
+    details: string;
+    sub_topics: SUBTOPIC[];
 }
 interface SUBTOPIC {
-    title: string
-    details: string
-    questions: T[]
+    title: string;
+    details: string;
+    questions: T[];
 }
 
 const transform_data = (data: T[]): SUB[] => {
     const vars: SUB[] = [];
     for (let i = 0; i < data.length; i++) {
         const el = data[i];
-        let si = vars.findIndex(s => s.name == el.s_name)
+        let si = vars.findIndex((s) => s.name == el.s_name);
         if (si == -1) si = vars.push({ name: el.s_name, topics: [] }) - 1;
 
-        let ti = vars[si].topics.findIndex(t => t.title == el.t_title)
-        if (ti == -1) ti = vars[si].topics.push({ title: el.t_title, details: el.t_details, sub_topics: [] }) - 1;
+        let ti = vars[si].topics.findIndex((t) => t.title == el.t_title);
+        if (ti == -1) {
+            ti = vars[si].topics.push({
+                title: el.t_title,
+                details: el.t_details,
+                sub_topics: [],
+            }) - 1;
+        }
 
-        let subi = vars[si].topics[ti].sub_topics.findIndex(t => t.title == el.sub_title)
-        if (subi == -1) subi = vars[si].topics[ti].sub_topics.push({ title: el.sub_title, details: el.sub_details, questions: [] }) - 1;
+        let subi = vars[si].topics[ti].sub_topics.findIndex((t) =>
+            t.title == el.sub_title
+        );
+        if (subi == -1) {
+            subi =
+                vars[si].topics[ti].sub_topics.push({
+                    title: el.sub_title,
+                    details: el.sub_details,
+                    questions: [],
+                }) - 1;
+        }
 
         vars[si].topics[ti].sub_topics[subi].questions.push(el);
     }
-    return vars
-}
+    return vars;
+};

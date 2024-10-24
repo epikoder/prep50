@@ -48,6 +48,7 @@ import * as $JumpPage from "./islands/JumpPage.tsx";
 import * as $MediaInput from "./islands/MediaInput.tsx";
 import * as $RelationInput from "./islands/RelationInput.tsx";
 import * as $Search from "./islands/Search.tsx";
+import * as $Select from "./islands/Select.tsx";
 import * as $Table from "./islands/Table.tsx";
 import * as $publish_BackButtonPublish from "./islands/publish/BackButtonPublish.tsx";
 import * as $publish_CreatePublsih from "./islands/publish/CreatePublsih.tsx";
@@ -121,6 +122,7 @@ const manifest = {
     "./islands/MediaInput.tsx": $MediaInput,
     "./islands/RelationInput.tsx": $RelationInput,
     "./islands/Search.tsx": $Search,
+    "./islands/Select.tsx": $Select,
     "./islands/Table.tsx": $Table,
     "./islands/publish/BackButtonPublish.tsx": $publish_BackButtonPublish,
     "./islands/publish/CreatePublsih.tsx": $publish_CreatePublsih,

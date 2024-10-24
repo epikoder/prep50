@@ -1,15 +1,14 @@
 import { PageProps } from "$fresh/server.ts";
 import SubjectList from "../../../islands/publish/SubjectList.tsx";
-import PublishTitle from "../../../islands/publish/PublishTitle.tsx";
 import Builder from "../../../libs/builder.ts";
 import { FreshApp } from "../../_middleware.ts";
 
-export const handler = async (req: Request, ctx: FreshApp) => {
+export const handler = async (_: Request, ctx: FreshApp) => {
   const id = ctx.params.id;
   const conn = await Builder.getConnection();
-  const r = await conn.query("SELECT id,title FROM publishes WHERE id = ?", [
+  const r = (await conn.query("SELECT id,title FROM publishes WHERE id = ?", [
     id,
-  ]) as IPublish[];
+  ])) as IPublish[];
   return ctx.render({
     ...r[0],
     subjects: await conn.query(

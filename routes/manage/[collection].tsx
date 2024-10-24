@@ -20,7 +20,7 @@ async function ___res(ctx: FreshApp) {
   // deno-lint-ignore no-explicit-any
   const res: Record<string, any> = { schema, action, config };
   if (id) {
-    const v = await Builder.instance().get(schema, {
+    const v = await Builder.instance.get(schema, {
       [`${schema.table}.id`]: id,
     });
     if (v) {
@@ -53,10 +53,12 @@ export const handler: Handlers<any, State> = {
     const response = new Map<string, string>();
 
     const queryParam: Record<string, string | number> = {};
+
     let __formJoinRelations: ({
       attribute: Attributes & (JoinRelationAttribute);
       value: string;
     })[] = [];
+
     const dir = Deno.env.get("SPACES_DIRECTORY");
     const files: Map<string, File> = new Map();
     try {
@@ -303,14 +305,10 @@ export const handler: Handlers<any, State> = {
                     );
                     throw new Error();
                   }
-                  if (id) {
-                    queryParam[
-                      `${attr.joinTableName}.${attr.joinReferenceKey}`
-                    ] = fv.toString();
-                  } else {__formJoinRelations = __formJoinRelations.concat({
-                      attribute: attr,
-                      value: fv.toString(),
-                    });}
+                  __formJoinRelations = __formJoinRelations.concat({
+                    attribute: attr,
+                    value: fv.toString(),
+                  });
                 }
                 break;
               }
@@ -330,9 +328,9 @@ export const handler: Handlers<any, State> = {
         ) {
           queryParam[schema.uniqueId || "id"] = crypto.randomUUID();
         }
-        const result = await Builder.instance().create(schema, queryParam);
+        const result = await Builder.instance.create(schema, queryParam);
         for (const fr of __formJoinRelations) {
-          await Builder.instance().createRelation(fr.attribute.joinTableName, {
+          await Builder.instance.createRelation(fr.attribute.joinTableName, {
             [`${fr.attribute.joinReferenceKey}`]: fr.value,
             [`${fr.attribute.joinForeignKey}`]: result != 0
               ? result
@@ -344,7 +342,13 @@ export const handler: Handlers<any, State> = {
           : queryParam[schema.uniqueId || "id"] as string;
       } else {
         queryParam[schema.uniqueId || "id"] = id;
-        await Builder.instance().update(schema, id, queryParam);
+        await Builder.instance.update(schema, id, queryParam);
+        for (const fr of __formJoinRelations) {
+          if (!fr.value) continue;
+          const sql = Builder.instance.builder.queryBuilder().table(fr.attribute.joinTableName)
+            .update(fr.attribute.joinReferenceKey, fr.value).where(fr.attribute.joinForeignKey, id).toQuery();
+          await (await Builder.getConnection()).execute(sql);
+        }
         response.set("id", id);
       }
       for (const [name, value] of files) {
@@ -354,6 +358,7 @@ export const handler: Handlers<any, State> = {
         });
       }
     } catch (error) {
+      console.error(error);
       const r = await ___res(ctx);
       if (!r) return ctx.renderNotFound();
       // deno-lint-ignore no-explicit-any
@@ -372,9 +377,8 @@ export const handler: Handlers<any, State> = {
     return new Response(null, {
       headers: {
         location: encodeURI(`/manage/${collection}${id ? "?id=" + id : ""}`),
-        ["X-CHAINED-MESSAGE"]: `${schema?.name} ${
-          !ctx.state.query.get("id") ? "Created" : "Updated"
-        } successfully`,
+        ["X-CHAINED-MESSAGE"]: `${schema?.name} ${!ctx.state.query.get("id") ? "Created" : "Updated"
+          } successfully`,
       },
       status: 303,
     });
@@ -415,9 +419,8 @@ export default function ManagePage({ data, state }: PageProps) {
       </div>
       {message && (
         <div
-          class={`${
-            !status || status === "success" ? "text-green-500" : "text-red-500"
-          } text-center space-x-2 flex justify-center py-4 text-sm`}
+          class={`${!status || status === "success" ? "text-green-500" : "text-red-500"
+            } text-center space-x-2 flex justify-center py-4 text-sm`}
         >
           {(status && status === "failed") && (
             <div>
@@ -475,3 +478,4 @@ export default function ManagePage({ data, state }: PageProps) {
     </div>
   );
 }
+

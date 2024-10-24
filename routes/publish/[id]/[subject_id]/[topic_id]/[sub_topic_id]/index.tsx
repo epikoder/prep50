@@ -12,15 +12,29 @@ export const handler = async (req: Request, ctx: FreshApp) => {
   const conn = await Builder.getConnection();
 
   const idx = await conn.query(
-    `SELECT pq.*, q.id AS 'q_id', q.question AS 'q_question', q.question_details AS 'q_question_details',
-    q.question_image AS 'q_question_image', q.answer_details AS 'q_answer_details', q.passage AS 'q_passage',
-    q.tag AS 'q_tag', q.question_type_id AS 'q_question_type_id', q.option_1 AS 'q_option_1', q.option_2 AS 'q_option_2',
-    q.option_3 AS 'q_option_3', q.option_4 AS 'q_option_4', q.short_answer AS 'q_short_answer', q.full_answer AS 'q_full_answer',
-    q.answer_image  AS 'q_answer_image'
-  FROM publish_questions AS pq
-  LEFT JOIN objective_questions AS oq ON oq.question_id = pq.question_id
-  LEFT JOIN questions AS q ON q.id = oq.question_id
-  WHERE pq.id = ? AND pq.subject_id = ? AND pq.topic_id = ? AND pq.sub_topic_id = ? ORDER BY pq.idx`,
+    `SELECT 
+  pq.*, 
+  q.id AS q_id, 
+  q.question AS q_question, 
+  q.question_details AS q_question_details, 
+  q.question_image AS q_question_image, 
+  q.answer_details AS q_answer_details, 
+  q.passage AS q_passage, 
+  q.tag AS q_tag, 
+  q.question_type_id AS q_question_type_id, 
+  q.option_1 AS q_option_1, 
+  q.option_2 AS q_option_2, 
+  q.option_3 AS q_option_3, 
+  q.option_4 AS q_option_4, 
+  q.short_answer AS q_short_answer, 
+  q.full_answer AS q_full_answer, 
+  q.answer_image AS q_answer_image  
+FROM publish_questions AS pq  
+LEFT JOIN objective_questions AS oq ON oq.question_id = pq.question_id  
+LEFT JOIN questions AS q ON q.id = oq.question_id  
+WHERE pq.id = $1 AND pq.subject_id = $2 AND pq.topic_id = $3 AND pq.sub_topic_id = $4 
+ORDER BY pq.idx;
+`,
     [
       id,
       subject_id,

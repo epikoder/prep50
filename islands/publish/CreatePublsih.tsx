@@ -1,6 +1,4 @@
-import { Selector } from "../../components/Select.tsx";
 import { useComputed, useSignal } from "@preact/signals";
-import { useEffect } from "preact/hooks";
 import Net from "../../libs/net.ts";
 import { Fragment } from "preact/jsx-runtime";
 import SubjectSelector from "./SubjectSelector.tsx";
