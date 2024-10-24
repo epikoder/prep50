@@ -63,7 +63,7 @@ import * as $publish_SubjectSelector from "./islands/publish/SubjectSelector.tsx
 import * as $publish_TopicList from "./islands/publish/TopicList.tsx";
 import * as $publish_TopicSelector from "./islands/publish/TopicSelector.tsx";
 import * as $publish_Walkthrough from "./islands/publish/Walkthrough.tsx";
-import { type Manifest } from "$fresh/server.ts";
+import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
