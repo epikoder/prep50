@@ -249,3 +249,7 @@ table.data-table tr:nth-child(even) td:first-child {
     padding: 0px 10px;
   }
 }
+
+.ql-toolbar {
+  background: white;
+}

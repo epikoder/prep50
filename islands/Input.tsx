@@ -1,5 +1,7 @@
-import { useEffect } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 import MediaInput from "./MediaInput.tsx";
+import QUILL, { QuillOptions } from "npm:quill@2.0.2";
+import { useSignal } from "@preact/signals";
 
 interface InputProps {
   attribute: SchemaAttribute;
@@ -7,39 +9,51 @@ interface InputProps {
   data: Record<string, any>;
 }
 export default function Input({ attribute, data }: InputProps) {
+  const ref = useRef<HTMLInputElement>(null);
+  const quillRef = useRef<HTMLDivElement>(null);
+  const quill = useSignal<QUILL | null>(null);
+
+  const isReady = useSignal(false);
+
   useEffect(() => {
-    if (attribute.type === "text" && typeof window !== "undefined") {
-      const sc = document.createElement("script");
-      sc.innerHTML = `
-      (function () {
-      const txtarea = document.getElementById('mce-${attribute.field}')
-        const options = {
-          selector: 'textarea#mce-${attribute.field}',
-          placeholder: 'Type here...',
-          height: 300,
-          resize: true,
-          menubar: false,
-          statusbar: false,
-          plugins: 'anchor autolink charmap codesample emoticons link lists searchreplace table visualblocks wordcount linkchecker',
-          toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
-          content_style:
-            'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }',
-          forced_root_block : "aaa",
-          newline_behaviour: "linebreak",
-          setup: (editor) => {
-            editor.on('change', (ev) => {
-                txtarea.innerHTML = editor.getContent();
-            })
+    if (
+      attribute.type === "text" && typeof window !== "undefined" &&
+      ref.current && quillRef.current
+    ) {
+      const toolbarOptions = [
+        [{ "size": ["small", false, "large", "huge"] }], // custom dropdown
+        [{ "header": [1, 2, 3, 4, 5, 6, false] }],
+        [{ "font": [] }],
+
+        ["bold", "italic", "underline", "strike"], // toggled buttons
+        ["blockquote", "code-block"],
+        ["link", "formula"],
+
+        [{ "header": 1 }, { "header": 2 }], // custom button values
+        [{ "list": "ordered" }, { "list": "bullet" }, { "list": "check" }],
+        [{ "script": "sub" }, { "script": "super" }], // superscript/subscript
+        [{ "indent": "-1" }, { "indent": "+1" }], // outdent/indent
+
+        [{ "align": [] }],
+
+        ["clean"], // remove formatting button
+      ];
+      quill.value = new Quill(
+        quillRef.current,
+        {
+          modules: {
+            toolbar: toolbarOptions,
+            table: true,
           },
-        };
-        if (localStorage.getItem('tablerTheme') === 'dark') {
-          options.skin = 'oxide-dark';
-          options.content_css = 'dark';
-        }
-        tinyMCE.init(options);
-      })();
-      `;
-      document.head.appendChild(sc);
+          placeholder: "type here...", //data[attribute.field] ?? "",
+          theme: "snow",
+        } satisfies QuillOptions,
+      );
+      quill.value!.on("text-change", () => {
+        ref.current!.value = quill.value!.root!.innerHTML;
+      });
+      ref.current!.value = data[attribute.field] ?? "";
+      setTimeout(() => isReady.value = true, 500);
     }
   }, []);
 
@@ -78,16 +92,18 @@ export default function Input({ attribute, data }: InputProps) {
       return (
         <div>
           <Title />
-          <textarea
+          <div
+            ref={quillRef}
+            class={"placeholder:lowercase bg-white text-sm text-gray-800 min-h-[10rem]"}
+            dangerouslySetInnerHTML={{ __html: data[attribute.field] ?? "" }}
+          >
+          </div>
+          <input
             id={"mce-" + attribute.field}
             name={attribute.field}
-            class={"placeholder:lowercase dark:bg-white rounded-md px-3 py-2 text-sm text-gray-800 mce-styling"}
-            onChange={(e) => {
-              console.log(e);
-            }}
-          >
-            {data[attribute.field] ?? ""}
-          </textarea>
+            ref={ref}
+            hidden
+          />
         </div>
       );
     case "enum":

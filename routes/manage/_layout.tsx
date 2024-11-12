@@ -5,12 +5,10 @@ export default function ManageLayout({ Component, state }: PageProps) {
   return (
     <>
       <Head>
-        <script
-          src="https://cdn.tiny.cloud/1/w0g0gbf73ue47o95f8abe8ily6c63tthti23raokvsxjqqjd/tinymce/7/tinymce.min.js"
-          referrerpolicy="origin"
-        />
+        <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js">
+        </script>
         <link
-          href="/tiny_mce.css"
+          href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css"
           rel="stylesheet"
         />
       </Head>
