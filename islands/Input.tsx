@@ -44,6 +44,7 @@ export default function Input({ attribute, data }: InputProps) {
           modules: {
             toolbar: toolbarOptions,
             table: true,
+            formula: true,
           },
           placeholder: "type here...", //data[attribute.field] ?? "",
           theme: "snow",
@@ -53,7 +54,12 @@ export default function Input({ attribute, data }: InputProps) {
         ref.current!.value = quill.value!.root!.innerHTML;
       });
       ref.current!.value = data[attribute.field] ?? "";
-      setTimeout(() => isReady.value = true, 500);
+      const enableMathQuillFormulaAuthoring = mathquill4quill();
+      enableMathQuillFormulaAuthoring(quill.value);
+
+      setTimeout(() => {
+        isReady.value = true, 500;
+      });
     }
   }, []);
 

@@ -253,3 +253,11 @@ table.data-table tr:nth-child(even) td:first-child {
 .ql-toolbar {
   background: white;
 }
+
+.ql-tooltip .ql-editing {
+  left: 0px !important;
+}
+
+.ql-snow .ql-tooltip {
+  left: 0px !important;
+}
