@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "preact/hooks";
 import MediaInput from "./MediaInput.tsx";
-import QUILL, { QuillOptions } from "npm:quill@2.0.2";
 import { useSignal } from "@preact/signals";
 
 interface InputProps {
@@ -10,52 +9,43 @@ interface InputProps {
 }
 export default function Input({ attribute, data }: InputProps) {
   const ref = useRef<HTMLInputElement>(null);
-  const quillRef = useRef<HTMLDivElement>(null);
-  const quill = useSignal<QUILL | null>(null);
+  const editorRef = useRef<HTMLTextAreaElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const isReady = useSignal(false);
 
   useEffect(() => {
     if (
       attribute.type === "text" && typeof window !== "undefined" &&
-      ref.current && quillRef.current
+      ref.current && editorRef.current
     ) {
-      const toolbarOptions = [
-        [{ "size": ["small", false, "large", "huge"] }], // custom dropdown
-        [{ "header": [1, 2, 3, 4, 5, 6, false] }],
-        [{ "font": [] }],
-
-        ["bold", "italic", "underline", "strike"], // toggled buttons
-        ["blockquote", "code-block"],
-        ["link", "formula"],
-
-        [{ "header": 1 }, { "header": 2 }], // custom button values
-        [{ "list": "ordered" }, { "list": "bullet" }, { "list": "check" }],
-        [{ "script": "sub" }, { "script": "super" }], // superscript/subscript
-        [{ "indent": "-1" }, { "indent": "+1" }], // outdent/indent
-
-        [{ "align": [] }],
-
-        ["clean"], // remove formatting button
-      ];
-      quill.value = new Quill(
-        quillRef.current,
-        {
-          modules: {
-            toolbar: toolbarOptions,
-            table: true,
-            formula: true,
-          },
-          placeholder: "type here...", //data[attribute.field] ?? "",
-          theme: "snow",
-        } satisfies QuillOptions,
-      );
-      quill.value!.on("text-change", () => {
-        ref.current!.value = quill.value!.root!.innerHTML;
+      const defaultValue = data[attribute.field] ?? "";
+      ref.current!.value = defaultValue;
+      const sunEditor = SUNEDITOR.create(editorRef.current, {
+        katex: globalThis.katex,
+        buttonList: [
+          ["undo", "redo"],
+          ["bold", "underline", "italic", "strike", "subscript", "superscript"],
+          ["font", "formatBlock", "fontSize"],
+          ["paragraphStyle", "blockquote"],
+          ["outdent", "indent"],
+          ["align", "horizontalRule", "list", "lineHeight"],
+          ["image", "video", "table", "math"],
+          ["removeFormat", "fullScreen", "codeView", "preview"],
+        ],
+        tagWhitelist: "table,tr,td,th,thead,tbody,strong,em,span,img,a",
+        pasteTagsWhitelist: "table,tr,td,th,thead,tbody,strong,em,span,img,a",
+        attributesWhitelist: {
+          "all": "*",
+        },
+        iframe: false,
+        height: 300,
+        value: defaultValue,
       });
-      ref.current!.value = data[attribute.field] ?? "";
-      const enableMathQuillFormulaAuthoring = mathquill4quill();
-      enableMathQuillFormulaAuthoring(quill.value);
+      containerRef.current!.onmouseleave = () =>
+        ref.current!.value = sunEditor.getContents();
+      containerRef.current!.onsubmit = () =>
+        ref.current!.value = sunEditor.getContents();
 
       setTimeout(() => {
         isReady.value = true, 500;
@@ -98,11 +88,13 @@ export default function Input({ attribute, data }: InputProps) {
       return (
         <div>
           <Title />
-          <div
-            ref={quillRef}
-            class={"placeholder:lowercase bg-white text-sm text-gray-800 min-h-[10rem]"}
-            dangerouslySetInnerHTML={{ __html: data[attribute.field] ?? "" }}
-          >
+          <div ref={containerRef}>
+            <textarea
+              ref={editorRef}
+              class={"placeholder:lowercase bg-white text-sm text-gray-800 min-h-[10rem]"}
+              value={data[attribute.field]}
+            >
+            </textarea>
           </div>
           <input
             id={"mce-" + attribute.field}

@@ -50,21 +50,6 @@
       "searchable": true
     },
     {
-      "field": "docs_url",
-      "type": "image",
-      "displayName": "Document"
-    },
-    {
-      "field": "slide_url",
-      "type": "image",
-      "displayName": "Slide"
-    },
-    {
-      "field": "video_url",
-      "type": "video",
-      "displayName": "Video"
-    },
-    {
       "field": "tag",
       "type": "enum",
       "displayName": "Jamb / Waec",
