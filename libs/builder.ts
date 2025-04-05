@@ -76,8 +76,9 @@ export default class Builder {
 
   async count(schema: Schema) {
     let query = this.builder.queryBuilder().table(schema.table).count("id");
-    this._log("Count --- ", query.toQuery());
-    return await this._db.execute(query.toQuery());
+    let sql = query.toSQL();
+    const result = await this._db.execute(sql.sql, sql.bindings as any[]);
+    return result;
   }
 
   async create(
@@ -88,7 +89,8 @@ export default class Builder {
     query = query.insert(params);
     console.log("Create --- ", query.toSQL().sql, params);
     query = query.returning(schema.uniqueId);
-    const result = await this._db.execute(query.toQuery());
+    let sql = query.toSQL();
+    const result = await this._db.execute(sql.sql, sql.bindings as any[]);
     return result.lastInsertId!;
   }
 
@@ -98,8 +100,9 @@ export default class Builder {
   ): Promise<boolean> {
     let query = this.builder.queryBuilder().table(tableName);
     query = query.insert(params);
-    console.log("CreateRelation --- ", query.toSQL().sql);
-    const result = await this._db.execute(query.toQuery());
+    let sql = query.toSQL();
+    console.log("CreateRelation --- ", sql.sql);
+    const result = await this._db.execute(sql.sql, sql.bindings as any[]);
     return result.affectedRows! > 0;
   }
 
@@ -126,12 +129,13 @@ export default class Builder {
       mappedParams[key] = value;
     }
 
-    this._log("Update", query.toQuery(), params);
+    let sql = query
+      .update(mappedParams)
+      .where(`${schema.table}.${schema.uniqueId || "id"}`, id).toSQL();
+
     let result = await this._db.execute(
-      query
-        .update(mappedParams)
-        .where(`${schema.table}.${schema.uniqueId || "id"}`, id).toQuery(),
-      this._toArray(mappedParams),
+      sql.sql,
+      sql.bindings as any[],
     );
     return (result.affectedRows || 0) > 0;
   }
@@ -150,10 +154,12 @@ export default class Builder {
     for (let p of Object.entries(params)) {
       query.where(p[0], p[1]);
     }
-    this._log("get----- :", query.toQuery());
+
+    let sql = query.toSQL();
+    this._log("get----- :", sql.sql, sql.bindings);
     let result = await this._db.execute(
-      query.toQuery(),
-      this._toArray(params),
+      sql.sql,
+      sql.bindings as any[],
     );
     return result.rows?.at(0);
   }
@@ -202,9 +208,10 @@ export default class Builder {
         query.limit(perPage);
         __values__ = __values__.concat(perPage);
       }
-      this._log("getAll ---- ", query.toQuery());
+      let sql = query.toSQL();
+      this._log("getAll ---- ", sql.sql, sql.bindings);
       const result = await this._db.execute(
-        query.toQuery(),
+        sql.sql,
         this._toArray(__values__),
       );
       return {
@@ -225,8 +232,9 @@ export default class Builder {
   ): Promise<boolean> {
     let query = this.builder.queryBuilder().table(schema.table);
     query = query.where(schema.uniqueId || "id", id).delete();
-    console.log("Delete --- ", query.toSQL().sql);
-    const result = await this._db.execute(query.toQuery());
+    let sql = query.toSQL();
+    console.log("Delete --- ", sql.sql);
+    const result = await this._db.execute(sql.sql, sql.bindings as any[]);
     console.log(result);
     return result.affectedRows! > 0;
   }
@@ -237,8 +245,9 @@ export default class Builder {
   ): Promise<boolean> {
     let query = this.builder.queryBuilder().table(tableName);
     query = query.where(params).delete();
-    console.log("DeleteRelation --- ", query.toSQL().sql);
-    const result = await this._db.execute(query.toQuery());
+    let sql = query.toSQL();
+    console.log("DeleteRelation --- ", sql.sql);
+    const result = await this._db.execute(sql.sql, sql.bindings as any[]);
     return result.affectedRows! > 0;
   }
 
@@ -264,7 +273,7 @@ export default class Builder {
         }`,
       );
     }
-    this._log("_select", builder.toQuery());
+    this._log("_select", builder.toSQL().sql);
     return <T> builder.select(select);
   }
 
@@ -285,7 +294,7 @@ export default class Builder {
         builder.select(field);
       }
     }
-    this._log("_selectRelation", builder.toQuery());
+    this._log("_selectRelation", builder.toSQL().sql);
     return <T> builder;
   }
 
@@ -412,7 +421,7 @@ export default class Builder {
           );
       }
     }
-    this._log("_selectJoinRelation", builder.toQuery());
+    this._log("_selectJoinRelation", builder.toSQL().sql);
     return builder;
   }
 
@@ -476,8 +485,10 @@ export default class Builder {
     }
 
     if (shouldFetchTotals) {
-      const countResult = (await this._db.execute(countQuery!.toQuery())).rows
-        ?.at(0);
+      const sql = countQuery!.toSQL();
+      const countResult =
+        (await this._db.execute(sql.sql, sql.bindings as any[])).rows
+          ?.at(0);
       const total = +(countResult.TOTAL || countResult.total || 0);
       const lastPage = Math.ceil(total / perPage);
       pagination = {
@@ -489,7 +500,6 @@ export default class Builder {
     }
 
     query.offset(offset).limit(limit);
-    this._log("paginate ---- ", query.toQuery(), values, offset, limit);
     const result = await this._db.execute(
       query.toQuery(),
       values.concat(limit),
